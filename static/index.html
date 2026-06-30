@@ -58,25 +58,56 @@
   .lp section { position:relative; }
 
   /* hero */
-  .lp-hero { min-height:100vh; display:flex; flex-direction:column; align-items:center;
-             justify-content:center; text-align:center; padding:80px 22px 40px;
-             background:radial-gradient(1100px 520px at 50% 8%, #eaf2ff 0%, #ffffff 58%); }
-  .lp-hero h1 { font-size:clamp(44px,9vw,108px); max-width:14ch; letter-spacing:-.04em; }
-  .lp-hero .lead { color:var(--body); font-size:clamp(20px,2.8vw,30px); font-weight:400;
-                   max-width:30ch; margin:24px auto 0; line-height:1.25; letter-spacing:-.015em; }
+  .lp-hero { position:relative; min-height:100vh; display:flex; flex-direction:column;
+             align-items:center; justify-content:center; text-align:center;
+             padding:104px 22px 140px; overflow:hidden; background:#ffffff; }
+  .lp-hero .hero-inner { position:relative; z-index:2; }
+  .lp-hero h1 { font-size:clamp(36px,6.2vw,80px); max-width:16ch; letter-spacing:-.035em; line-height:1.04; }
+  .lp-hero .lead { color:var(--body); font-size:clamp(19px,2.5vw,27px); font-weight:400;
+                   max-width:32ch; margin:22px auto 0; line-height:1.25; letter-spacing:-.015em; }
   .lp-hero .cta-row { display:flex; gap:26px; align-items:center; justify-content:center;
-                      flex-wrap:wrap; margin-top:40px; }
-  .scroll-cue { position:absolute; bottom:30px; left:50%; transform:translateX(-50%);
-                font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted);
-                display:flex; flex-direction:column; align-items:center; gap:9px; }
-  .scroll-cue::after { content:""; width:1px; height:34px; background:linear-gradient(var(--muted),transparent);
-                       animation:cue 1.8s ease-in-out infinite; }
-  @keyframes cue { 0%{transform:scaleY(.3);opacity:.4;transform-origin:top} 50%{transform:scaleY(1);opacity:1}
-                   100%{transform:scaleY(.3);opacity:.4;transform-origin:bottom} }
+                      flex-wrap:wrap; margin-top:38px; }
+
+  /* hero background — drifting gradient orbs + faint dot grid */
+  .lp-hero .bg { position:absolute; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
+  .lp-hero .bg::after { content:""; position:absolute; inset:0;
+        background-image:radial-gradient(rgba(20,30,60,.06) 1px, transparent 1.4px); background-size:30px 30px;
+        -webkit-mask-image:radial-gradient(circle at 50% 38%, #000 0%, transparent 68%);
+        mask-image:radial-gradient(circle at 50% 38%, #000 0%, transparent 68%); }
+  .orb { position:absolute; border-radius:50%; filter:blur(72px); opacity:.5; will-change:transform; }
+  .orb.a { width:560px; height:560px; top:-160px; left:-120px;
+           background:radial-gradient(circle at 30% 30%, #8fb8ff, transparent 70%); animation:drift1 19s ease-in-out infinite; }
+  .orb.b { width:520px; height:520px; top:-30px; right:-150px;
+           background:radial-gradient(circle at 60% 40%, #c9b3ff, transparent 70%); animation:drift2 23s ease-in-out infinite; }
+  .orb.c { width:600px; height:600px; bottom:-240px; left:34%;
+           background:radial-gradient(circle at 50% 50%, #93e6ff, transparent 70%); animation:drift3 27s ease-in-out infinite; }
+  @keyframes drift1 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(42px,32px)} }
+  @keyframes drift2 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-52px,40px)} }
+  @keyframes drift3 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(30px,-44px)} }
+
+  /* scroll cue — animated mouse + label, clickable */
+  .scroll-cue { position:absolute; bottom:26px; left:50%; transform:translateX(-50%); z-index:2;
+                display:flex; flex-direction:column; align-items:center; gap:9px; cursor:pointer;
+                background:none; border:none; padding:6px; }
+  .scroll-cue .mouse { width:26px; height:42px; border:2px solid var(--muted); border-radius:14px;
+                       position:relative; opacity:.85; transition:border-color .2s; }
+  .scroll-cue .mouse::after { content:""; position:absolute; top:7px; left:50%; width:4px; height:8px;
+        border-radius:3px; background:var(--muted); transform:translateX(-50%);
+        animation:wheel 1.7s cubic-bezier(.45,0,.2,1) infinite; }
+  .scroll-cue .label { font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--muted);
+                       transition:color .2s; }
+  .scroll-cue:hover .mouse { border-color:var(--accent); }
+  .scroll-cue:hover .label { color:var(--accent); }
+  @keyframes wheel { 0%{opacity:0;transform:translate(-50%,0)} 25%{opacity:1}
+                     75%{opacity:1;transform:translate(-50%,13px)} 100%{opacity:0;transform:translate(-50%,15px)} }
 
   /* stats (dark) */
-  .lp-stats { background:var(--dark); color:var(--on-dark); padding:120px 22px; }
-  .stats-grid { max-width:1080px; margin:0 auto; display:grid; grid-template-columns:repeat(4,1fr); gap:30px; }
+  .lp-stats { position:relative; overflow:hidden; background:var(--dark); color:var(--on-dark); padding:120px 22px; }
+  .lp-stats::before { content:""; position:absolute; inset:0; z-index:0;
+        background:radial-gradient(640px 320px at 18% 0%, rgba(0,113,227,.30), transparent 62%),
+                   radial-gradient(560px 320px at 92% 112%, rgba(124,58,237,.26), transparent 60%); }
+  .stats-grid { position:relative; z-index:1; max-width:1080px; margin:0 auto;
+                display:grid; grid-template-columns:repeat(4,1fr); gap:30px; }
   .stat { text-align:center; }
   .stat .n { font-size:clamp(40px,5.5vw,68px); font-weight:600; letter-spacing:-.03em;
              background:linear-gradient(180deg,#fff,#9bbcff); -webkit-background-clip:text;
@@ -93,6 +124,9 @@
   .lp-feature { background:var(--bg); }
   .feature-pin { height:100vh; display:flex; align-items:center; justify-content:center;
                  position:relative; overflow:hidden; padding:0 22px; }
+  .feature-pin::before { content:""; position:absolute; top:50%; left:50%; width:700px; height:700px;
+        transform:translate(-50%,-50%); border-radius:50%; z-index:0;
+        background:radial-gradient(circle, rgba(0,113,227,.12), transparent 64%); }
   .feature-center { text-align:center; max-width:18ch; z-index:2; }
   .feature-center h2 { font-size:clamp(36px,6vw,76px); letter-spacing:-.04em; }
   .feature-center p { color:var(--body); font-size:clamp(17px,2vw,22px); margin-top:18px; }
@@ -105,10 +139,13 @@
   .fp-3 { bottom:12%; left:50%; transform:translateX(-50%); }
 
   /* showcase (dark, horizontal) */
-  .lp-showcase { background:var(--dark-2); color:var(--on-dark); }
-  .showcase-head { text-align:center; padding:110px 22px 0; }
+  .lp-showcase { position:relative; overflow:hidden; background:var(--dark-2); color:var(--on-dark); }
+  .lp-showcase::before { content:""; position:absolute; top:-80px; left:50%; transform:translateX(-50%);
+        width:900px; height:520px; z-index:0;
+        background:radial-gradient(circle, rgba(0,194,255,.20), transparent 65%); }
+  .showcase-head { position:relative; z-index:1; text-align:center; padding:110px 22px 0; }
   .showcase-head h2 { font-size:clamp(30px,4.5vw,52px); letter-spacing:-.03em; }
-  .showcase-view { padding:60px 0 110px; }
+  .showcase-view { position:relative; z-index:1; padding:60px 0 110px; }
   .showcase-track { display:flex; gap:26px; padding:0 8vw; will-change:transform; }
   .sc-card { flex:0 0 78vw; max-width:560px; min-height:46vh; border-radius:var(--radius-lg);
              padding:38px 38px 42px; display:flex; flex-direction:column; justify-content:flex-end;
@@ -122,13 +159,19 @@
   @media (min-width:760px){ .sc-card { flex-basis:40vw; } }
 
   /* testimonial (light) */
-  .lp-quote { background:var(--bg-alt); padding:130px 22px; text-align:center; }
-  .lp-quote blockquote { max-width:20ch; margin:0 auto; font-size:clamp(28px,4vw,46px);
+  .lp-quote { position:relative; overflow:hidden; background:var(--bg-alt); padding:130px 22px; text-align:center; }
+  .lp-quote::before { content:"\201C"; position:absolute; top:34px; left:50%; transform:translateX(-50%);
+        font:700 260px/1 Georgia,"Times New Roman",serif; color:#e4e4ec; z-index:0; }
+  .lp-quote blockquote { position:relative; z-index:1; max-width:20ch; margin:0 auto; font-size:clamp(28px,4vw,46px);
                          font-weight:600; letter-spacing:-.03em; line-height:1.18; color:var(--ink); }
-  .lp-quote cite { display:block; margin-top:28px; color:var(--muted); font-size:16px; font-style:normal; }
+  .lp-quote cite { position:relative; z-index:1; display:block; margin-top:28px; color:var(--muted);
+                   font-size:16px; font-style:normal; }
 
   /* closing cta (light) */
-  .lp-cta { background:var(--bg); padding:140px 22px 150px; text-align:center; }
+  .lp-cta { position:relative; overflow:hidden; background:var(--bg); padding:140px 22px 150px; text-align:center; }
+  .lp-cta::before { content:""; position:absolute; inset:0; z-index:0;
+        background:radial-gradient(720px 420px at 50% 28%, #e9f1ff, transparent 66%); }
+  .lp-cta > * { position:relative; z-index:1; }
   .lp-cta h2 { font-size:clamp(34px,5.5vw,68px); letter-spacing:-.04em; max-width:16ch; margin:0 auto; }
   .lp-cta p { color:var(--body); font-size:clamp(18px,2.2vw,24px); max-width:40ch; margin:22px auto 38px; }
 
@@ -210,6 +253,9 @@
 <div id="home-step" class="step on lp">
   <!-- Hero -->
   <section class="lp-hero">
+    <div class="bg" aria-hidden="true">
+      <span class="orb a"></span><span class="orb b"></span><span class="orb c"></span>
+    </div>
     <div class="hero-inner">
       <h1 id="hero-title"></h1>
       <p class="lead" id="app-sub"></p>
@@ -218,7 +264,10 @@
         <button class="linkarrow" id="see-how"></button>
       </div>
     </div>
-    <div class="scroll-cue"><span id="scroll-cue"></span></div>
+    <button class="scroll-cue" id="scroll-cue-btn" aria-label="Scroll down">
+      <span class="mouse"></span>
+      <span class="label" id="scroll-cue"></span>
+    </button>
   </section>
 
   <!-- Stats (dark) -->
@@ -543,6 +592,11 @@ function initScroll() {
   gsap.to('.scroll-cue', {
     scrollTrigger: { trigger: '.lp-hero', start: 'top top', end: '30% top', scrub: true }, opacity: 0,
   });
+  // Parallax depth — the orbs drift at different speeds as the hero scrolls away.
+  const heroST = { trigger: '.lp-hero', start: 'top top', end: 'bottom top', scrub: true };
+  gsap.to('.orb.a', { yPercent: 26, ease: 'none', scrollTrigger: heroST });
+  gsap.to('.orb.b', { yPercent: -20, ease: 'none', scrollTrigger: heroST });
+  gsap.to('.orb.c', { yPercent: 34, ease: 'none', scrollTrigger: heroST });
 
   // Stats: staggered rise + de-blur.
   gsap.from('.stat', {
@@ -604,10 +658,12 @@ $('#logo').onclick = () => show('home');
 $('#nav-cta').onclick = () => show('brief');
 $('#home-cta').onclick = () => show('brief');
 $('#home-cta-2').onclick = () => show('brief');
-$('#see-how').onclick = () => {
+const scrollToStats = () => {
   const t = document.querySelector('.lp-stats');
   if (lenis) lenis.scrollTo(t); else t.scrollIntoView({ behavior: 'smooth' });
 };
+$('#see-how').onclick = scrollToStats;
+$('#scroll-cue-btn').onclick = scrollToStats;
 $('#brief-back').onclick = () => show('home');
 $('#to-contact').onclick = goContact;
 $('#contact-back').onclick = () => show('brief');
