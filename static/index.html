@@ -124,7 +124,7 @@
   .showcase-view { position:relative; z-index:1; padding:48px 22px 110px; }
   .showcase-track { display:flex; flex-direction:column; gap:22px; max-width:680px; margin:0 auto; }
   .sc-card { border-radius:var(--radius-lg); padding:40px 40px 44px; color:#fff;
-             box-shadow:0 20px 60px rgba(0,0,0,.4); }
+             box-shadow:0 20px 60px rgba(0,0,0,.4); will-change:transform; }
   .sc-card:nth-child(1){ background:linear-gradient(150deg,#0071e3,#00c2ff); }
   .sc-card:nth-child(2){ background:linear-gradient(150deg,#7c3aed,#db2777); }
   .sc-card:nth-child(3){ background:linear-gradient(150deg,#059669,#34d399); }
@@ -536,10 +536,14 @@ function initScroll() {
     y: 48, opacity: 0, filter: 'blur(8px)', stagger: 0.12, duration: 0.9, ease,
   });
 
-  // Showcase: cards rise + de-blur in a simple stagger as they enter (no scroll-jacking).
-  gsap.from('.sc-card', {
-    scrollTrigger: { trigger: '.lp-showcase', start: 'top 70%' },
-    y: 40, opacity: 0, filter: 'blur(6px)', stagger: 0.12, duration: 0.8, ease,
+  // Showcase: each card grows + brightens toward center, then shrinks as it
+  // passes — a gentle scroll-driven pulse (no scroll-jacking, page scrolls normally).
+  gsap.utils.toArray('.sc-card').forEach((card) => {
+    gsap.timeline({
+      scrollTrigger: { trigger: card, start: 'top bottom', end: 'bottom top', scrub: true },
+    })
+      .fromTo(card, { scale: 0.86, opacity: 0.7 }, { scale: 1, opacity: 1, ease: 'sine.out' })
+      .to(card, { scale: 0.86, opacity: 0.7, ease: 'sine.in' });
   });
 
   // Closing CTA: assembles from its parts.
