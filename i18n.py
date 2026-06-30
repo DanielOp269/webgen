@@ -56,25 +56,12 @@ UI = {
         "stat_2_n": "98%",    "stat_2_l": "Client satisfaction",
         "stat_3_n": "11 min",  "stat_3_l": "Average brief",
         "stat_4_n": "30+",    "stat_4_l": "Industries served",
-        "trusted_eyebrow": "Trusted by teams who care about the details",
-        # feature reveal (pinned)
-        "feat_title": "Everything, handled.",
-        "feat_sub": "From the first question to the finished site — one calm, considered process.",
-        "feat_1_t": "Tailored design",
-        "feat_1_d": "A look crafted around your brand, not a template you fight with.",
-        "feat_2_t": "Multi-page & responsive",
-        "feat_2_d": "Every page, flawless from phone to desktop.",
-        "feat_3_t": "Words that convert",
-        "feat_3_d": "Clear, confident copy that turns visitors into customers.",
         # showcase
         "show_title": "Built for your world",
         "show_1_t": "Cafés & retail",     "show_1_d": "Warm, inviting sites that fill tables and baskets.",
         "show_2_t": "Studios & agencies", "show_2_d": "Bold portfolios that let the work speak.",
         "show_3_t": "Clinics & care",     "show_3_d": "Calm, trustworthy sites that put people at ease.",
         "show_4_t": "Trades & services",  "show_4_d": "Straightforward sites that bring the calls in.",
-        # testimonial / reference
-        "quote_text": "“We had a site we were proud of in days, not months. It just felt effortless.”",
-        "quote_author": "Maria K. · Café Nordlicht",
         # closing cta
         "cta_title": "Your website starts with a brief.",
         "cta_sub": "Answer a few questions. We'll handle the rest and reply within one business day.",
@@ -129,25 +116,12 @@ UI = {
         "stat_2_n": "98 %",   "stat_2_l": "Kundenzufriedenheit",
         "stat_3_n": "11 Min",  "stat_3_l": "Briefing im Schnitt",
         "stat_4_n": "30+",    "stat_4_l": "Branchen betreut",
-        "trusted_eyebrow": "Vertraut von Teams, denen Details wichtig sind",
-        # Feature-Reveal (fixiert)
-        "feat_title": "Alles aus einer Hand.",
-        "feat_sub": "Von der ersten Frage bis zur fertigen Website — ein ruhiger, durchdachter Prozess.",
-        "feat_1_t": "Maßgeschneidertes Design",
-        "feat_1_d": "Ein Look für Ihre Marke — keine Vorlage, mit der Sie kämpfen.",
-        "feat_2_t": "Mehrseitig & responsiv",
-        "feat_2_d": "Jede Seite makellos, vom Smartphone bis zum Desktop.",
-        "feat_3_t": "Texte, die überzeugen",
-        "feat_3_d": "Klare, sichere Texte, die aus Besuchern Kunden machen.",
         # Showcase
         "show_title": "Für Ihre Welt gemacht",
         "show_1_t": "Cafés & Handel",      "show_1_d": "Einladende Seiten, die Tische und Körbe füllen.",
         "show_2_t": "Studios & Agenturen", "show_2_d": "Starke Portfolios, die die Arbeit sprechen lassen.",
         "show_3_t": "Praxen & Pflege",     "show_3_d": "Ruhige, vertrauensvolle Seiten, die Sicherheit geben.",
         "show_4_t": "Handwerk & Dienste",  "show_4_d": "Klare Seiten, die für Anfragen sorgen.",
-        # Testimonial / Referenz
-        "quote_text": "„Wir hatten in Tagen eine Website, auf die wir stolz sind — nicht in Monaten. Es war einfach mühelos.“",
-        "quote_author": "Maria K. · Café Nordlicht",
         # Abschluss-CTA
         "cta_title": "Ihre Website beginnt mit einem Briefing.",
         "cta_sub": "Beantworten Sie ein paar Fragen. Den Rest übernehmen wir — Antwort innerhalb eines Werktags.",

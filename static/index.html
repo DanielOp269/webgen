@@ -114,30 +114,6 @@
              background-clip:text; -webkit-text-fill-color:transparent; }
   .stat .l { color:var(--on-dark-mut); font-size:16px; margin-top:8px; }
 
-  /* trusted (light) */
-  .lp-trusted { background:var(--bg); padding:96px 22px; text-align:center; }
-  .lp-trusted .eyebrow { color:var(--muted); font-size:14px; letter-spacing:.04em; margin-bottom:34px; }
-  .logos { display:flex; flex-wrap:wrap; justify-content:center; gap:46px; max-width:920px; margin:0 auto; }
-  .logos span { font-size:24px; font-weight:600; color:#c2c2c7; letter-spacing:-.02em; }
-
-  /* feature reveal (pinned, light) */
-  .lp-feature { background:var(--bg); }
-  .feature-pin { height:100vh; display:flex; align-items:center; justify-content:center;
-                 position:relative; overflow:hidden; padding:0 22px; }
-  .feature-pin::before { content:""; position:absolute; top:50%; left:50%; width:700px; height:700px;
-        transform:translate(-50%,-50%); border-radius:50%; z-index:0;
-        background:radial-gradient(circle, rgba(0,113,227,.12), transparent 64%); }
-  .feature-center { text-align:center; max-width:18ch; z-index:2; }
-  .feature-center h2 { font-size:clamp(36px,6vw,76px); letter-spacing:-.04em; }
-  .feature-center p { color:var(--body); font-size:clamp(17px,2vw,22px); margin-top:18px; }
-  .fp { position:absolute; width:min(300px,80vw); background:#fff; border:1px solid var(--line);
-        border-radius:var(--radius); padding:22px 24px; box-shadow:var(--shadow); z-index:1; }
-  .fp h3 { font-size:19px; margin-bottom:6px; }
-  .fp p { color:var(--body); font-size:15px; margin:0; }
-  .fp-1 { top:13%; left:6%; }
-  .fp-2 { top:16%; right:6%; }
-  .fp-3 { bottom:12%; left:50%; transform:translateX(-50%); }
-
   /* showcase (dark, horizontal) */
   .lp-showcase { position:relative; overflow:hidden; background:var(--dark-2); color:var(--on-dark); }
   .lp-showcase::before { content:""; position:absolute; top:-80px; left:50%; transform:translateX(-50%);
@@ -157,15 +133,6 @@
   .sc-card h3 { font-size:30px; letter-spacing:-.02em; }
   .sc-card p { font-size:17px; margin:10px 0 0; opacity:.92; max-width:34ch; }
   @media (min-width:760px){ .sc-card { flex-basis:40vw; } }
-
-  /* testimonial (light) */
-  .lp-quote { position:relative; overflow:hidden; background:var(--bg-alt); padding:130px 22px; text-align:center; }
-  .lp-quote::before { content:"\201C"; position:absolute; top:34px; left:50%; transform:translateX(-50%);
-        font:700 260px/1 Georgia,"Times New Roman",serif; color:#e4e4ec; z-index:0; }
-  .lp-quote blockquote { position:relative; z-index:1; max-width:20ch; margin:0 auto; font-size:clamp(28px,4vw,46px);
-                         font-weight:600; letter-spacing:-.03em; line-height:1.18; color:var(--ink); }
-  .lp-quote cite { position:relative; z-index:1; display:block; margin-top:28px; color:var(--muted);
-                   font-size:16px; font-style:normal; }
 
   /* closing cta (light) */
   .lp-cta { position:relative; overflow:hidden; background:var(--bg); padding:140px 22px 150px; text-align:center; }
@@ -224,9 +191,6 @@
   .step.on { display:block; }
   @media (max-width:760px) {
     .stats-grid { grid-template-columns:repeat(2,1fr); gap:40px 20px; }
-    .fp { position:static; width:auto; margin:14px auto 0; transform:none; box-shadow:none; }
-    .fp-3 { transform:none; }
-    .feature-pin { height:auto; flex-direction:column; padding:90px 22px; gap:8px; }
     .card { padding:32px 24px; }
   }
   @media (prefers-reduced-motion:reduce){ html{scroll-behavior:auto;} .scroll-cue::after{animation:none;} }
@@ -280,25 +244,6 @@
     </div>
   </section>
 
-  <!-- Trusted by -->
-  <section class="lp-trusted">
-    <div class="eyebrow" id="trusted-eyebrow"></div>
-    <div class="logos">
-      <span>Lumen</span><span>Nordlicht</span><span>Atlas</span>
-      <span>Vela</span><span>Form&amp;Co</span><span>Hearth</span>
-    </div>
-  </section>
-
-  <!-- Feature reveal (pinned) -->
-  <section class="lp-feature">
-    <div class="feature-pin">
-      <div class="feature-center"><h2 id="feat-title"></h2><p id="feat-sub"></p></div>
-      <div class="fp fp-1"><h3 id="feat-1-t"></h3><p id="feat-1-d"></p></div>
-      <div class="fp fp-2"><h3 id="feat-2-t"></h3><p id="feat-2-d"></p></div>
-      <div class="fp fp-3"><h3 id="feat-3-t"></h3><p id="feat-3-d"></p></div>
-    </div>
-  </section>
-
   <!-- Showcase (horizontal) -->
   <section class="lp-showcase">
     <div class="showcase-head"><h2 id="show-title"></h2></div>
@@ -310,12 +255,6 @@
         <div class="sc-card"><h3 id="show-4-t"></h3><p id="show-4-d"></p></div>
       </div>
     </div>
-  </section>
-
-  <!-- Testimonial -->
-  <section class="lp-quote">
-    <blockquote id="quote-text"></blockquote>
-    <cite id="quote-author"></cite>
   </section>
 
   <!-- Closing CTA -->
@@ -423,15 +362,10 @@ function applyUI() {
   set('nav-cta', UI.nav_start);
   // stats
   for (let i = 1; i <= 4; i++) { set('stat-'+i+'-n', UI['stat_'+i+'_n']); set('stat-'+i+'-l', UI['stat_'+i+'_l']); }
-  set('trusted-eyebrow', UI.trusted_eyebrow);
-  // feature
-  set('feat-title', UI.feat_title); set('feat-sub', UI.feat_sub);
-  for (let i = 1; i <= 3; i++) { set('feat-'+i+'-t', UI['feat_'+i+'_t']); set('feat-'+i+'-d', UI['feat_'+i+'_d']); }
   // showcase
   set('show-title', UI.show_title);
   for (let i = 1; i <= 4; i++) { set('show-'+i+'-t', UI['show_'+i+'_t']); set('show-'+i+'-d', UI['show_'+i+'_d']); }
-  // testimonial + cta
-  set('quote-text', UI.quote_text); set('quote-author', UI.quote_author);
+  // cta
   set('cta-title', UI.cta_title); set('cta-sub', UI.cta_sub);
   // stepper
   set('step-brief', UI.step_brief); set('step-contact', UI.step_contact); set('step-done', UI.step_done);
@@ -604,21 +538,6 @@ function initScroll() {
     y: 48, opacity: 0, filter: 'blur(8px)', stagger: 0.12, duration: 0.9, ease,
   });
 
-  // Trusted logos: gentle stagger.
-  gsap.from('.logos span', {
-    scrollTrigger: { trigger: '.lp-trusted', start: 'top 82%' },
-    y: 22, opacity: 0, stagger: 0.07, duration: 0.7, ease,
-  });
-
-  // Testimonial: scale/blur in.
-  gsap.from('.lp-quote blockquote', {
-    scrollTrigger: { trigger: '.lp-quote', start: 'top 72%' },
-    scale: 0.92, opacity: 0, filter: 'blur(10px)', duration: 1, ease,
-  });
-  gsap.from('.lp-quote cite', {
-    scrollTrigger: { trigger: '.lp-quote', start: 'top 66%' }, y: 16, opacity: 0, duration: 0.8, ease,
-  });
-
   // Closing CTA: assembles from its parts.
   gsap.from('.lp-cta > *', {
     scrollTrigger: { trigger: '.lp-cta', start: 'top 75%' },
@@ -628,15 +547,6 @@ function initScroll() {
   // Desktop-only heavy effects: pinned feature reveal + horizontal showcase.
   const mm = gsap.matchMedia();
   mm.add('(min-width: 760px)', () => {
-    // Feature reveal — center stays pinned, supporting cards fly in around it.
-    const ft = gsap.timeline({
-      scrollTrigger: { trigger: '.lp-feature', start: 'top top', end: '+=180%', scrub: true, pin: '.feature-pin' },
-    });
-    ft.from('.feature-center', { scale: 0.8, opacity: 0, filter: 'blur(12px)', ease: 'none' })
-      .from('.fp-1', { x: -120, y: -30, opacity: 0, filter: 'blur(8px)', ease: 'none' }, 0.15)
-      .from('.fp-2', { x: 120, y: -30, opacity: 0, filter: 'blur(8px)', ease: 'none' }, 0.35)
-      .from('.fp-3', { y: 120, opacity: 0, filter: 'blur(8px)', ease: 'none' }, 0.55);
-
     // Horizontal showcase — pin and translate the track on scroll.
     const track = document.querySelector('.showcase-track');
     const dist = () => Math.max(0, track.scrollWidth - window.innerWidth + window.innerWidth * 0.16);
