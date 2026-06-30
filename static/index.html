@@ -173,6 +173,18 @@
           max-width:660px; box-shadow:var(--shadow); }
   .card > h2 { font-size:28px; }
   .card > .sub { color:var(--body); margin-top:8px; font-size:17px; }
+
+  /* brief wizard — one question at a time */
+  .wiz-top { display:flex; align-items:center; gap:14px; margin:22px 0 6px; }
+  .wiz-progress { flex:1; height:6px; background:var(--line); border-radius:999px; overflow:hidden; }
+  .wiz-progress span { display:block; height:100%; width:0; background:var(--accent);
+                       border-radius:999px; transition:width .35s cubic-bezier(.4,0,.2,1); }
+  .wiz-count { font-size:13px; color:var(--muted); white-space:nowrap; }
+  .qslide { display:none; }
+  .qslide.on { display:block; animation:qfade .35s ease; }
+  #brief-form .qslide label { font-size:20px; font-weight:600; margin:18px 0 14px; }
+  @keyframes qfade { from{opacity:0; transform:translateY(8px)} to{opacity:1; transform:none} }
+
   label { display:block; font-weight:500; color:var(--ink); margin:26px 0 8px; font-size:15px; }
   .hint { font-weight:400; color:var(--muted); font-size:13px; }
   input[type=text], input[type=email], input[type=tel], select, textarea {
@@ -296,13 +308,16 @@
   <section id="form-step" class="step">
     <div class="card">
       <h2 id="form-title"></h2>
-      <div class="sub" id="form-sub"></div>
+      <div class="wiz-top">
+        <div class="wiz-progress"><span id="wiz-bar"></span></div>
+        <div class="wiz-count" id="wiz-count"></div>
+      </div>
       <form id="brief-form"></form>
       <div class="err" id="form-err"></div>
       <div class="actions">
         <button class="btn ghost" id="brief-back"></button>
         <span class="spacer"></span>
-        <button class="btn" id="to-contact"></button>
+        <button class="btn" id="brief-next"></button>
       </div>
     </div>
   </section>
@@ -399,9 +414,9 @@ function applyUI() {
   set('cta-title', UI.cta_title); set('cta-sub', UI.cta_sub);
   // stepper
   set('step-brief', UI.step_brief); set('step-contact', UI.step_contact); set('step-done', UI.step_done);
-  // brief
-  set('form-title', UI.form_title); set('form-sub', UI.form_sub);
-  set('brief-back', UI.back_btn); set('to-contact', UI.continue_btn);
+  // brief (one-question-at-a-time wizard)
+  set('form-title', UI.form_title);
+  set('brief-back', UI.back_btn); set('brief-next', UI.continue_btn);
   // contact
   set('contact-title', UI.contact_title); set('contact-sub', UI.contact_sub);
   set('l-cname', UI.contact_name); set('l-cemail', UI.contact_email);
@@ -439,6 +454,7 @@ function buildForm() {
   for (const k of Object.keys(multi)) delete multi[k];
   for (const q of SCHEMA) {
     const wrap = document.createElement('div');
+    wrap.className = 'qslide';
     const opt = q.required ? '' : ` <span class="hint">(${UI.optional})</span>`;
     const lbl = `<label>${q.label}${opt}</label>`;
     if (q.type === 'text') {
@@ -464,6 +480,7 @@ function buildForm() {
     if (set.has(c.dataset.o)) set.delete(c.dataset.o); else set.add(c.dataset.o);
     c.classList.toggle('on');
   });
+  showQuestion(0);
 }
 
 function collect() {
@@ -479,26 +496,48 @@ function collect() {
   return a;
 }
 
-function briefMissing() {
-  const missing = [];
-  for (const q of SCHEMA) {
-    if (!q.required) continue;
-    if (q.type === 'multiselect') { if (!multi[q.id] || multi[q.id].size === 0) missing.push(q.label); }
-    else { const el = $('#f_' + q.id); if (!el || !el.value.trim()) missing.push(q.label); }
-  }
-  return missing;
+// ---- Brief wizard: one question per screen ----
+let qIndex = 0;
+
+function showQuestion(i) {
+  const slides = document.querySelectorAll('#brief-form .qslide');
+  if (!slides.length) return;
+  qIndex = Math.max(0, Math.min(i, slides.length - 1));
+  slides.forEach((s, idx) => s.classList.toggle('on', idx === qIndex));
+  const total = slides.length;
+  $('#wiz-bar').style.width = ((qIndex + 1) / total * 100) + '%';
+  $('#wiz-count').textContent = (UI.wiz_count || 'Question {n} of {total}')
+      .replace('{n}', qIndex + 1).replace('{total}', total);
+  $('#form-err').textContent = '';
+  const inp = slides[qIndex].querySelector('input,select,textarea');
+  if (inp && inp.type !== 'color') setTimeout(() => inp.focus(), 60);
 }
 
-function goContact() {
-  const missing = briefMissing();
-  if (missing.length) {
-    const prefix = LANG === 'de' ? 'Bitte ausfüllen: ' : 'Please fill in: ';
-    $('#form-err').textContent = prefix + missing.join(', ');
-    return;
+function validateCurrent() {
+  const q = SCHEMA[qIndex];
+  if (!q || !q.required) return true;
+  let ok;
+  if (q.type === 'multiselect') ok = multi[q.id] && multi[q.id].size > 0;
+  else { const el = $('#f_' + q.id); ok = el && el.value.trim(); }
+  if (!ok) {
+    $('#form-err').textContent = (LANG === 'de' ? 'Bitte ausfüllen: ' : 'Please fill in: ') + q.label;
+    return false;
   }
-  $('#form-err').textContent = '';
-  show('contact');
+  return true;
 }
+
+function nextQuestion() {
+  if (!validateCurrent()) return;
+  if (qIndex >= SCHEMA.length - 1) { show('contact'); return; }
+  showQuestion(qIndex + 1);
+}
+
+function prevQuestion() {
+  if (qIndex <= 0) { show('home'); return; }
+  showQuestion(qIndex - 1);
+}
+
+function enterBrief() { show('brief'); showQuestion(0); }
 
 async function submit() {
   $('#contact-err').textContent = '';
@@ -594,20 +633,24 @@ function initScroll() {
 }
 
 $('#logo').onclick = () => show('home');
-$('#nav-cta').onclick = () => show('brief');
-$('#home-cta').onclick = () => show('brief');
-$('#home-cta-2').onclick = () => show('brief');
+$('#nav-cta').onclick = enterBrief;
+$('#home-cta').onclick = enterBrief;
+$('#home-cta-2').onclick = enterBrief;
 const scrollDown = () => {
   const t = document.querySelector('.lp-how');
   if (lenis) lenis.scrollTo(t); else t.scrollIntoView({ behavior: 'smooth' });
 };
 $('#see-how').onclick = scrollDown;
 $('#scroll-cue-btn').onclick = scrollDown;
-$('#brief-back').onclick = () => show('home');
-$('#to-contact').onclick = goContact;
-$('#contact-back').onclick = () => show('brief');
+$('#brief-back').onclick = prevQuestion;
+$('#brief-next').onclick = nextQuestion;
+$('#contact-back').onclick = () => { show('brief'); showQuestion(qIndex); };
 $('#submit').onclick = submit;
 $('#restart').onclick = restart;
+// Enter advances to the next question (but not inside a textarea).
+$('#brief-form').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') { e.preventDefault(); nextQuestion(); }
+});
 loadSchema(navigator.language || 'en', true);
 </script>
 </body>

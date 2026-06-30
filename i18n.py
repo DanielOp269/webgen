@@ -84,6 +84,7 @@ UI = {
         "optional": "optional",
         "continue_btn": "Continue →",
         "back_btn": "← Back",
+        "wiz_count": "Question {n} of {total}",
         "err_generic": "Something went wrong. Please try again.",
         # contact step
         "contact_title": "How can we reach you?",
@@ -153,6 +154,7 @@ UI = {
         "optional": "optional",
         "continue_btn": "Weiter →",
         "back_btn": "← Zurück",
+        "wiz_count": "Frage {n} von {total}",
         "err_generic": "Etwas ist schiefgelaufen. Bitte erneut versuchen.",
         # contact step
         "contact_title": "Wie erreichen wir Sie?",
