@@ -232,17 +232,7 @@
     </button>
   </section>
 
-  <!-- Stats (dark) -->
-  <section class="lp-stats" id="stats">
-    <div class="stats-grid">
-      <div class="stat"><div class="n" id="stat-1-n"></div><div class="l" id="stat-1-l"></div></div>
-      <div class="stat"><div class="n" id="stat-2-n"></div><div class="l" id="stat-2-l"></div></div>
-      <div class="stat"><div class="n" id="stat-3-n"></div><div class="l" id="stat-3-l"></div></div>
-      <div class="stat"><div class="n" id="stat-4-n"></div><div class="l" id="stat-4-l"></div></div>
-    </div>
-  </section>
-
-  <!-- Showcase (horizontal) -->
+  <!-- Showcase -->
   <section class="lp-showcase">
     <div class="showcase-head"><h2 id="show-title"></h2></div>
     <div class="showcase-view">
@@ -260,6 +250,16 @@
     <h2 id="cta-title"></h2>
     <p id="cta-sub"></p>
     <button class="btn big" id="home-cta-2"></button>
+  </section>
+
+  <!-- Stats (dark) — at the very bottom -->
+  <section class="lp-stats" id="stats">
+    <div class="stats-grid">
+      <div class="stat"><div class="n" id="stat-1-n"></div><div class="l" id="stat-1-l"></div></div>
+      <div class="stat"><div class="n" id="stat-2-n"></div><div class="l" id="stat-2-l"></div></div>
+      <div class="stat"><div class="n" id="stat-3-n"></div><div class="l" id="stat-3-l"></div></div>
+      <div class="stat"><div class="n" id="stat-4-n"></div><div class="l" id="stat-4-l"></div></div>
+    </div>
   </section>
 </div>
 
@@ -559,12 +559,12 @@ $('#logo').onclick = () => show('home');
 $('#nav-cta').onclick = () => show('brief');
 $('#home-cta').onclick = () => show('brief');
 $('#home-cta-2').onclick = () => show('brief');
-const scrollToStats = () => {
-  const t = document.querySelector('.lp-stats');
+const scrollDown = () => {
+  const t = document.querySelector('.lp-showcase');
   if (lenis) lenis.scrollTo(t); else t.scrollIntoView({ behavior: 'smooth' });
 };
-$('#see-how').onclick = scrollToStats;
-$('#scroll-cue-btn').onclick = scrollToStats;
+$('#see-how').onclick = scrollDown;
+$('#scroll-cue-btn').onclick = scrollDown;
 $('#brief-back').onclick = () => show('home');
 $('#to-contact').onclick = goContact;
 $('#contact-back').onclick = () => show('brief');
