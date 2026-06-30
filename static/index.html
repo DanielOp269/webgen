@@ -152,7 +152,10 @@
   .stepper .s.done .n { background:var(--accent); border-color:var(--accent); color:#fff; }
   .stepper .bar { width:40px; height:2px; background:var(--line); }
 
-  .funnel { padding:0 22px 88px; }
+  .funnel { padding:0 22px; }
+  /* Bottom breathing room only when a funnel step is active — so the homepage
+     (where every funnel step is hidden) has no blank gap before the footer. */
+  .funnel .step.on { padding-bottom:88px; }
   .card { background:#fff; border-radius:var(--radius-lg); padding:44px 46px; margin:28px auto 0;
           max-width:660px; box-shadow:var(--shadow); }
   .card > h2 { font-size:28px; }
