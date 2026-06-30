@@ -48,7 +48,8 @@ UI = {
         "app_sub": "Tell us about your project. We design your website and get "
                    "back to you within one business day.",
         "nav_start": "Get started",
-        "home_cta": "Start your brief →",
+        "home_cta": "Start your brief",
+        "see_how": "See how it works ›",
         "how_title": "How it works",
         "how_1_t": "Share your brief",
         "how_1_d": "Answer a few quick questions about your business and the site you want.",
@@ -99,7 +100,8 @@ UI = {
         "app_sub": "Erzählen Sie uns von Ihrem Projekt. Wir gestalten Ihre Website "
                    "und melden uns innerhalb eines Werktags.",
         "nav_start": "Loslegen",
-        "home_cta": "Briefing starten →",
+        "home_cta": "Briefing starten",
+        "see_how": "So funktioniert's ›",
         "how_title": "So funktioniert's",
         "how_1_t": "Briefing teilen",
         "how_1_d": "Beantworten Sie ein paar kurze Fragen zu Ihrem Unternehmen und der gewünschten Website.",
