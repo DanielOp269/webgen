@@ -114,25 +114,23 @@
              background-clip:text; -webkit-text-fill-color:transparent; }
   .stat .l { color:var(--on-dark-mut); font-size:16px; margin-top:8px; }
 
-  /* showcase (dark, horizontal) */
+  /* showcase (dark, vertical stack) */
   .lp-showcase { position:relative; overflow:hidden; background:var(--dark-2); color:var(--on-dark); }
   .lp-showcase::before { content:""; position:absolute; top:-80px; left:50%; transform:translateX(-50%);
         width:900px; height:520px; z-index:0;
         background:radial-gradient(circle, rgba(0,194,255,.20), transparent 65%); }
   .showcase-head { position:relative; z-index:1; text-align:center; padding:110px 22px 0; }
   .showcase-head h2 { font-size:clamp(30px,4.5vw,52px); letter-spacing:-.03em; }
-  .showcase-view { position:relative; z-index:1; padding:60px 0 110px; }
-  .showcase-track { display:flex; gap:26px; padding:0 8vw; will-change:transform; }
-  .sc-card { flex:0 0 78vw; max-width:560px; min-height:46vh; border-radius:var(--radius-lg);
-             padding:38px 38px 42px; display:flex; flex-direction:column; justify-content:flex-end;
-             color:#fff; box-shadow:0 30px 80px rgba(0,0,0,.4); }
+  .showcase-view { position:relative; z-index:1; padding:48px 22px 110px; }
+  .showcase-track { display:flex; flex-direction:column; gap:22px; max-width:680px; margin:0 auto; }
+  .sc-card { border-radius:var(--radius-lg); padding:40px 40px 44px; color:#fff;
+             box-shadow:0 20px 60px rgba(0,0,0,.4); }
   .sc-card:nth-child(1){ background:linear-gradient(150deg,#0071e3,#00c2ff); }
   .sc-card:nth-child(2){ background:linear-gradient(150deg,#7c3aed,#db2777); }
   .sc-card:nth-child(3){ background:linear-gradient(150deg,#059669,#34d399); }
   .sc-card:nth-child(4){ background:linear-gradient(150deg,#ea580c,#f59e0b); }
-  .sc-card h3 { font-size:30px; letter-spacing:-.02em; }
-  .sc-card p { font-size:17px; margin:10px 0 0; opacity:.92; max-width:34ch; }
-  @media (min-width:760px){ .sc-card { flex-basis:40vw; } }
+  .sc-card h3 { font-size:28px; letter-spacing:-.02em; }
+  .sc-card p { font-size:17px; margin:10px 0 0; opacity:.92; }
 
   /* closing cta (light) */
   .lp-cta { position:relative; overflow:hidden; background:var(--bg); padding:140px 22px 150px; text-align:center; }
@@ -538,27 +536,16 @@ function initScroll() {
     y: 48, opacity: 0, filter: 'blur(8px)', stagger: 0.12, duration: 0.9, ease,
   });
 
+  // Showcase: cards rise + de-blur in a simple stagger as they enter (no scroll-jacking).
+  gsap.from('.sc-card', {
+    scrollTrigger: { trigger: '.lp-showcase', start: 'top 70%' },
+    y: 40, opacity: 0, filter: 'blur(6px)', stagger: 0.12, duration: 0.8, ease,
+  });
+
   // Closing CTA: assembles from its parts.
   gsap.from('.lp-cta > *', {
     scrollTrigger: { trigger: '.lp-cta', start: 'top 75%' },
     y: 40, opacity: 0, filter: 'blur(6px)', stagger: 0.14, duration: 0.9, ease,
-  });
-
-  // Desktop-only heavy effects: pinned feature reveal + horizontal showcase.
-  const mm = gsap.matchMedia();
-  mm.add('(min-width: 760px)', () => {
-    // Horizontal showcase — pin and translate the track on scroll.
-    const track = document.querySelector('.showcase-track');
-    const dist = () => Math.max(0, track.scrollWidth - window.innerWidth + window.innerWidth * 0.16);
-    gsap.to(track, {
-      x: () => -dist(), ease: 'none',
-      scrollTrigger: {
-        trigger: '.lp-showcase', start: 'top top', end: () => '+=' + dist(),
-        scrub: 1, pin: true, invalidateOnRefresh: true, anticipatePin: 1,
-      },
-    });
-
-    return () => {};   // matchMedia cleanup handled by GSAP
   });
 
   ScrollTrigger.refresh();
