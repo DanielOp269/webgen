@@ -51,6 +51,15 @@ UI = {
         "home_cta": "Start your brief",
         "see_how": "See how it works ›",
         "scroll_cue": "Scroll",
+        # how it works (plain 1-2-3)
+        "how_title": "How it works",
+        "how_1_t": "Tell us about your business",
+        "how_1_d": "A few simple questions — about a minute.",
+        "how_2_t": "We build your website",
+        "how_2_d": "Our team designs it for you. You don't do anything technical.",
+        "how_3_t": "You look it over",
+        "how_3_d": "We send it to you to review, then make it live.",
+        "reassure": "Free and no obligation. No technical skills needed — we reply within one business day.",
         # stats / references — placeholder numbers, swap for real ones later
         "stat_1_n": "2,400+", "stat_1_l": "Websites delivered",
         "stat_2_n": "98%",    "stat_2_l": "Client satisfaction",
@@ -111,6 +120,15 @@ UI = {
         "home_cta": "Briefing starten",
         "see_how": "So funktioniert's ›",
         "scroll_cue": "Scrollen",
+        # So funktioniert's (einfach 1-2-3)
+        "how_title": "So funktioniert's",
+        "how_1_t": "Erzählen Sie von Ihrem Unternehmen",
+        "how_1_d": "Ein paar einfache Fragen — etwa eine Minute.",
+        "how_2_t": "Wir bauen Ihre Website",
+        "how_2_d": "Unser Team gestaltet sie für Sie. Die Technik übernehmen wir.",
+        "how_3_t": "Sie schauen sie sich an",
+        "how_3_d": "Wir senden sie Ihnen zur Ansicht und schalten sie dann live.",
+        "reassure": "Kostenlos und unverbindlich. Keine technischen Kenntnisse nötig — Antwort innerhalb eines Werktags.",
         # Statistiken / Referenzen — Platzhalter, später ersetzen
         "stat_1_n": "2.400+", "stat_1_l": "Websites geliefert",
         "stat_2_n": "98 %",   "stat_2_l": "Kundenzufriedenheit",

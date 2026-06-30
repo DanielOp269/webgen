@@ -114,6 +114,19 @@
              background-clip:text; -webkit-text-fill-color:transparent; }
   .stat .l { color:var(--on-dark-mut); font-size:16px; margin-top:8px; }
 
+  /* how it works (plain 1-2-3) */
+  .lp-how { background:var(--bg); padding:100px 22px; text-align:center; }
+  .lp-how h2 { font-size:clamp(30px,4.5vw,52px); letter-spacing:-.03em; }
+  .how-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:30px; max-width:1000px; margin:50px auto 0; }
+  .how-step .num { width:62px; height:62px; border-radius:50%; display:grid; place-items:center;
+                   margin:0 auto 18px; font-size:27px; font-weight:600; color:#fff;
+                   background:linear-gradient(135deg,#0071e3,#42a5ff); box-shadow:0 8px 22px rgba(0,113,227,.3); }
+  .how-step h3 { font-size:22px; margin-bottom:8px; }
+  .how-step p { color:var(--body); font-size:17px; margin:0 auto; max-width:28ch; }
+
+  /* reassurance line under the Start buttons */
+  .reassure { color:var(--muted); font-size:15px; margin:18px auto 0; max-width:46ch; }
+
   /* showcase (dark, vertical stack) */
   .lp-showcase { position:relative; overflow:hidden; background:var(--dark-2); color:var(--on-dark); }
   .lp-showcase::before { content:""; position:absolute; top:-80px; left:50%; transform:translateX(-50%);
@@ -192,6 +205,7 @@
   .step.on { display:block; }
   @media (max-width:760px) {
     .stats-grid { grid-template-columns:repeat(2,1fr); gap:40px 20px; }
+    .how-grid { grid-template-columns:1fr; gap:44px; }
     .card { padding:32px 24px; }
   }
   @media (prefers-reduced-motion:reduce){ html{scroll-behavior:auto;} .scroll-cue::after{animation:none;} }
@@ -228,11 +242,22 @@
         <button class="btn big" id="home-cta"></button>
         <button class="linkarrow" id="see-how"></button>
       </div>
+      <p class="reassure" id="reassure-1"></p>
     </div>
     <button class="scroll-cue" id="scroll-cue-btn" aria-label="Scroll down">
       <span class="mouse"></span>
       <span class="label" id="scroll-cue"></span>
     </button>
+  </section>
+
+  <!-- How it works (plain 1-2-3) -->
+  <section class="lp-how" id="how">
+    <h2 id="how-title"></h2>
+    <div class="how-grid">
+      <div class="how-step"><div class="num">1</div><h3 id="how-1-t"></h3><p id="how-1-d"></p></div>
+      <div class="how-step"><div class="num">2</div><h3 id="how-2-t"></h3><p id="how-2-d"></p></div>
+      <div class="how-step"><div class="num">3</div><h3 id="how-3-t"></h3><p id="how-3-d"></p></div>
+    </div>
   </section>
 
   <!-- Showcase -->
@@ -253,6 +278,7 @@
     <h2 id="cta-title"></h2>
     <p id="cta-sub"></p>
     <button class="btn big" id="home-cta-2"></button>
+    <p class="reassure" id="reassure-2"></p>
   </section>
 
   <!-- Stats (dark) — at the very bottom -->
@@ -361,6 +387,10 @@ function applyUI() {
   set('home-cta', UI.home_cta); set('home-cta-2', UI.home_cta);
   set('see-how', UI.see_how); set('scroll-cue', UI.scroll_cue);
   set('nav-cta', UI.nav_start);
+  set('reassure-1', UI.reassure); set('reassure-2', UI.reassure);
+  // how it works
+  set('how-title', UI.how_title);
+  for (let i = 1; i <= 3; i++) { set('how-'+i+'-t', UI['how_'+i+'_t']); set('how-'+i+'-d', UI['how_'+i+'_d']); }
   // stats
   for (let i = 1; i <= 4; i++) { set('stat-'+i+'-n', UI['stat_'+i+'_n']); set('stat-'+i+'-l', UI['stat_'+i+'_l']); }
   // showcase
@@ -533,6 +563,12 @@ function initScroll() {
   gsap.to('.orb.b', { yPercent: -20, ease: 'none', scrollTrigger: heroST });
   gsap.to('.orb.c', { yPercent: 34, ease: 'none', scrollTrigger: heroST });
 
+  // How it works: the three steps rise + de-blur in a gentle stagger.
+  gsap.from('.how-step', {
+    scrollTrigger: { trigger: '.lp-how', start: 'top 75%' },
+    y: 36, opacity: 0, filter: 'blur(6px)', stagger: 0.14, duration: 0.8, ease,
+  });
+
   // Stats: staggered rise + de-blur.
   gsap.from('.stat', {
     scrollTrigger: { trigger: '.lp-stats', start: 'top 78%' },
@@ -563,7 +599,7 @@ $('#nav-cta').onclick = () => show('brief');
 $('#home-cta').onclick = () => show('brief');
 $('#home-cta-2').onclick = () => show('brief');
 const scrollDown = () => {
-  const t = document.querySelector('.lp-showcase');
+  const t = document.querySelector('.lp-how');
   if (lenis) lenis.scrollTo(t); else t.scrollIntoView({ behavior: 'smooth' });
 };
 $('#see-how').onclick = scrollDown;
