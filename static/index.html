@@ -8,6 +8,7 @@
   :root {
     --ink:#1d1d1f; --body:#6e6e73; --muted:#86868b;
     --bg:#ffffff; --bg-alt:#f5f5f7; --line:#d2d2d7;
+    --dark:#0a0a0b; --dark-2:#141417; --on-dark:#f5f5f7; --on-dark-mut:#a1a1a6;
     --accent:#0071e3; --accent-dark:#0077ed;
     --radius:18px; --radius-lg:28px;
     --shadow:0 4px 30px rgba(0,0,0,.08);
@@ -17,88 +18,125 @@
   html { scroll-behavior:smooth; }
   body { margin:0; color:var(--ink); background:var(--bg); letter-spacing:-.01em;
          font:17px/1.47 "SF Pro Text",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-         -webkit-font-smoothing:antialiased; }
-  h1,h2,h3 { color:var(--ink); line-height:1.06; letter-spacing:-.03em; font-weight:600; margin:0; }
+         -webkit-font-smoothing:antialiased; overflow-x:hidden; }
+  h1,h2,h3 { color:inherit; line-height:1.06; letter-spacing:-.03em; font-weight:600; margin:0; }
   a { color:var(--accent); text-decoration:none; }
   a:hover { text-decoration:underline; }
   .wrap { max-width:var(--maxw); margin:0 auto; padding:0 22px; }
 
-  /* top bar — thin, frosted (Apple nav) */
+  /* top bar — thin, frosted */
   .topbar { background:rgba(255,255,255,.72); backdrop-filter:saturate(180%) blur(20px);
-            border-bottom:1px solid rgba(0,0,0,.07); position:sticky; top:0; z-index:30; }
+            border-bottom:1px solid rgba(0,0,0,.07); position:fixed; top:0; left:0; right:0; z-index:50; }
   .topbar .wrap { display:flex; align-items:center; justify-content:space-between; height:48px; }
   .logo { display:flex; align-items:center; gap:9px; font-weight:600; color:var(--ink);
           font-size:18px; letter-spacing:-.02em; cursor:pointer; }
   .logo .mark { width:24px; height:24px; border-radius:7px;
                 background:linear-gradient(135deg,#0071e3,#42a5ff); }
+  .topnav { display:flex; align-items:center; gap:16px; }
   .langbox { font-size:13px; color:var(--muted); display:flex; align-items:center; gap:7px; }
   .langbox select { font:inherit; padding:5px 8px; border:1px solid var(--line);
                     border-radius:8px; background:rgba(255,255,255,.6); color:var(--ink); cursor:pointer; }
+  .nav-cta { font-size:14px; font-weight:500; color:#fff; background:var(--accent);
+             border:none; border-radius:980px; padding:7px 16px; cursor:pointer; }
+  .nav-cta:hover { background:var(--accent-dark); }
 
-  /* buttons — Apple pill */
+  /* buttons */
   .btn { background:var(--accent); color:#fff; border:none; border-radius:980px;
          padding:12px 26px; font:inherit; font-size:17px; font-weight:400; cursor:pointer;
          transition:background .2s, transform .08s; }
   .btn:hover { background:var(--accent-dark); }
   .btn:active { transform:scale(.98); }
   .btn:disabled { opacity:.5; cursor:default; }
-  .btn.big { padding:14px 32px; font-size:19px; }
+  .btn.big { padding:15px 34px; font-size:19px; }
   .btn.ghost { background:transparent; color:var(--accent); padding:12px 8px; }
   .btn.ghost:hover { background:transparent; text-decoration:underline; }
   .linkarrow { color:var(--accent); font-size:18px; cursor:pointer; background:none; border:none;
                font:inherit; padding:0; }
   .linkarrow:hover { text-decoration:underline; }
 
+  /* ===== LANDING ===== */
+  .lp section { position:relative; }
+
   /* hero */
-  .hero { text-align:center; padding:84px 22px 18px; }
-  .hero h1 { font-size:clamp(40px,7vw,80px); max-width:16ch; margin:0 auto; }
-  .hero .lead { color:var(--body); font-size:clamp(20px,2.6vw,27px); font-weight:400;
-                max-width:36ch; margin:20px auto 0; line-height:1.25; letter-spacing:-.015em; }
-  .hero .cta-row { display:flex; gap:26px; align-items:center; justify-content:center;
-                   flex-wrap:wrap; margin-top:34px; }
+  .lp-hero { min-height:100vh; display:flex; flex-direction:column; align-items:center;
+             justify-content:center; text-align:center; padding:80px 22px 40px;
+             background:radial-gradient(1100px 520px at 50% 8%, #eaf2ff 0%, #ffffff 58%); }
+  .lp-hero h1 { font-size:clamp(44px,9vw,108px); max-width:14ch; letter-spacing:-.04em; }
+  .lp-hero .lead { color:var(--body); font-size:clamp(20px,2.8vw,30px); font-weight:400;
+                   max-width:30ch; margin:24px auto 0; line-height:1.25; letter-spacing:-.015em; }
+  .lp-hero .cta-row { display:flex; gap:26px; align-items:center; justify-content:center;
+                      flex-wrap:wrap; margin-top:40px; }
+  .scroll-cue { position:absolute; bottom:30px; left:50%; transform:translateX(-50%);
+                font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted);
+                display:flex; flex-direction:column; align-items:center; gap:9px; }
+  .scroll-cue::after { content:""; width:1px; height:34px; background:linear-gradient(var(--muted),transparent);
+                       animation:cue 1.8s ease-in-out infinite; }
+  @keyframes cue { 0%{transform:scaleY(.3);opacity:.4;transform-origin:top} 50%{transform:scaleY(1);opacity:1}
+                   100%{transform:scaleY(.3);opacity:.4;transform-origin:bottom} }
 
-  /* hero product mockup (pure CSS — evokes the sites we build) */
-  .mock { max-width:880px; margin:54px auto 0; border-radius:var(--radius-lg);
-          background:#fff; box-shadow:0 30px 80px rgba(0,0,0,.16); overflow:hidden;
-          border:1px solid rgba(0,0,0,.06); }
-  .mock .bar { height:38px; background:#f5f5f7; border-bottom:1px solid var(--line);
-               display:flex; align-items:center; gap:7px; padding:0 16px; }
-  .mock .bar span { width:11px; height:11px; border-radius:50%; background:#e0e0e5; }
-  .mock .bar span:nth-child(1){ background:#ff5f57; } .mock .bar span:nth-child(2){ background:#febc2e; }
-  .mock .bar span:nth-child(3){ background:#28c840; }
-  .mock .screen { padding:42px 40px 48px; background:
-        radial-gradient(1200px 300px at 50% -40%, #eaf2ff 0%, #ffffff 60%); }
-  .mock .m-h1 { height:26px; width:55%; margin:0 auto; border-radius:7px;
-                background:linear-gradient(90deg,#0071e3,#42a5ff); }
-  .mock .m-p { height:11px; width:38%; margin:14px auto 0; border-radius:6px; background:#e6e6eb; }
-  .mock .m-btn { height:30px; width:124px; margin:22px auto 0; border-radius:980px; background:#0071e3; }
-  .mock .m-row { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:38px; }
-  .mock .m-card { height:96px; border-radius:14px; background:#f5f5f7; border:1px solid #ececf0; }
+  /* stats (dark) */
+  .lp-stats { background:var(--dark); color:var(--on-dark); padding:120px 22px; }
+  .stats-grid { max-width:1080px; margin:0 auto; display:grid; grid-template-columns:repeat(4,1fr); gap:30px; }
+  .stat { text-align:center; }
+  .stat .n { font-size:clamp(40px,5.5vw,68px); font-weight:600; letter-spacing:-.03em;
+             background:linear-gradient(180deg,#fff,#9bbcff); -webkit-background-clip:text;
+             background-clip:text; -webkit-text-fill-color:transparent; }
+  .stat .l { color:var(--on-dark-mut); font-size:16px; margin-top:8px; }
 
-  /* sections */
-  .section { padding:96px 22px; }
-  .section.alt { background:var(--bg-alt); }
-  .section h2.center { text-align:center; font-size:clamp(28px,4vw,44px); margin-bottom:8px; }
-  .section .sub.center { text-align:center; color:var(--body); font-size:20px; max-width:46ch;
-                         margin:0 auto 48px; }
+  /* trusted (light) */
+  .lp-trusted { background:var(--bg); padding:96px 22px; text-align:center; }
+  .lp-trusted .eyebrow { color:var(--muted); font-size:14px; letter-spacing:.04em; margin-bottom:34px; }
+  .logos { display:flex; flex-wrap:wrap; justify-content:center; gap:46px; max-width:920px; margin:0 auto; }
+  .logos span { font-size:24px; font-weight:600; color:#c2c2c7; letter-spacing:-.02em; }
 
-  /* how it works */
-  .how-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:22px;
-              max-width:var(--maxw); margin:48px auto 0; }
-  .how-card { background:#fff; border-radius:var(--radius-lg); padding:36px 30px;
-              box-shadow:var(--shadow); }
-  .how-card .num { width:44px; height:44px; border-radius:50%; display:grid; place-items:center;
-                   font-weight:600; font-size:19px; color:#fff; margin-bottom:18px;
-                   background:linear-gradient(135deg,#0071e3,#42a5ff); }
-  .how-card h3 { font-size:21px; margin-bottom:8px; }
-  .how-card p { margin:0; color:var(--body); font-size:16px; }
+  /* feature reveal (pinned, light) */
+  .lp-feature { background:var(--bg); }
+  .feature-pin { height:100vh; display:flex; align-items:center; justify-content:center;
+                 position:relative; overflow:hidden; padding:0 22px; }
+  .feature-center { text-align:center; max-width:18ch; z-index:2; }
+  .feature-center h2 { font-size:clamp(36px,6vw,76px); letter-spacing:-.04em; }
+  .feature-center p { color:var(--body); font-size:clamp(17px,2vw,22px); margin-top:18px; }
+  .fp { position:absolute; width:min(300px,80vw); background:#fff; border:1px solid var(--line);
+        border-radius:var(--radius); padding:22px 24px; box-shadow:var(--shadow); z-index:1; }
+  .fp h3 { font-size:19px; margin-bottom:6px; }
+  .fp p { color:var(--body); font-size:15px; margin:0; }
+  .fp-1 { top:13%; left:6%; }
+  .fp-2 { top:16%; right:6%; }
+  .fp-3 { bottom:12%; left:50%; transform:translateX(-50%); }
 
-  /* stepper */
+  /* showcase (dark, horizontal) */
+  .lp-showcase { background:var(--dark-2); color:var(--on-dark); }
+  .showcase-head { text-align:center; padding:110px 22px 0; }
+  .showcase-head h2 { font-size:clamp(30px,4.5vw,52px); letter-spacing:-.03em; }
+  .showcase-view { padding:60px 0 110px; }
+  .showcase-track { display:flex; gap:26px; padding:0 8vw; will-change:transform; }
+  .sc-card { flex:0 0 78vw; max-width:560px; min-height:46vh; border-radius:var(--radius-lg);
+             padding:38px 38px 42px; display:flex; flex-direction:column; justify-content:flex-end;
+             color:#fff; box-shadow:0 30px 80px rgba(0,0,0,.4); }
+  .sc-card:nth-child(1){ background:linear-gradient(150deg,#0071e3,#00c2ff); }
+  .sc-card:nth-child(2){ background:linear-gradient(150deg,#7c3aed,#db2777); }
+  .sc-card:nth-child(3){ background:linear-gradient(150deg,#059669,#34d399); }
+  .sc-card:nth-child(4){ background:linear-gradient(150deg,#ea580c,#f59e0b); }
+  .sc-card h3 { font-size:30px; letter-spacing:-.02em; }
+  .sc-card p { font-size:17px; margin:10px 0 0; opacity:.92; max-width:34ch; }
+  @media (min-width:760px){ .sc-card { flex-basis:40vw; } }
+
+  /* testimonial (light) */
+  .lp-quote { background:var(--bg-alt); padding:130px 22px; text-align:center; }
+  .lp-quote blockquote { max-width:20ch; margin:0 auto; font-size:clamp(28px,4vw,46px);
+                         font-weight:600; letter-spacing:-.03em; line-height:1.18; color:var(--ink); }
+  .lp-quote cite { display:block; margin-top:28px; color:var(--muted); font-size:16px; font-style:normal; }
+
+  /* closing cta (light) */
+  .lp-cta { background:var(--bg); padding:140px 22px 150px; text-align:center; }
+  .lp-cta h2 { font-size:clamp(34px,5.5vw,68px); letter-spacing:-.04em; max-width:16ch; margin:0 auto; }
+  .lp-cta p { color:var(--body); font-size:clamp(18px,2.2vw,24px); max-width:40ch; margin:22px auto 38px; }
+
+  /* ===== FUNNEL (brief / contact / done) ===== */
   .stepper { display:flex; align-items:center; justify-content:center; gap:10px;
-             margin:48px auto 6px; flex-wrap:wrap; }
+             margin:84px auto 6px; flex-wrap:wrap; }
   .stepper.hidden { display:none; }
-  .stepper .s { display:flex; align-items:center; gap:9px; color:var(--muted);
-                font-size:14px; font-weight:500; }
+  .stepper .s { display:flex; align-items:center; gap:9px; color:var(--muted); font-size:14px; font-weight:500; }
   .stepper .n { width:27px; height:27px; border-radius:50%; border:1.5px solid var(--line);
                 display:grid; place-items:center; font-size:13px; background:#fff; transition:all .2s; }
   .stepper .s.active { color:var(--ink); }
@@ -106,13 +144,11 @@
   .stepper .s.done .n { background:var(--accent); border-color:var(--accent); color:#fff; }
   .stepper .bar { width:40px; height:2px; background:var(--line); }
 
-  /* step cards (brief / contact / done) */
-  main { padding:0 22px 88px; }
+  .funnel { padding:0 22px 88px; }
   .card { background:#fff; border-radius:var(--radius-lg); padding:44px 46px; margin:28px auto 0;
           max-width:660px; box-shadow:var(--shadow); }
   .card > h2 { font-size:28px; }
   .card > .sub { color:var(--body); margin-top:8px; font-size:17px; }
-
   label { display:block; font-weight:500; color:var(--ink); margin:26px 0 8px; font-size:15px; }
   .hint { font-weight:400; color:var(--muted); font-size:13px; }
   input[type=text], input[type=email], input[type=tel], select, textarea {
@@ -129,12 +165,9 @@
           user-select:none; background:#fff; font-size:15px; transition:all .15s; }
   .chip:hover { border-color:var(--muted); }
   .chip.on { background:var(--accent); color:#fff; border-color:var(--accent); }
-
   .actions { display:flex; gap:14px; margin-top:34px; align-items:center; }
   .spacer { flex:1; }
   .err { color:#d70015; margin-top:16px; font-size:15px; }
-
-  /* thank-you */
   .done-card { text-align:center; }
   .done-card .check { width:72px; height:72px; border-radius:50%; margin:6px auto 22px;
                       background:linear-gradient(135deg,#0071e3,#42a5ff); display:grid; place-items:center; }
@@ -147,16 +180,22 @@
   .step { display:none; }
   .step.on { display:block; }
   @media (max-width:760px) {
-    .how-grid, .mock .m-row { grid-template-columns:1fr; }
-    .section { padding:64px 22px; }
+    .stats-grid { grid-template-columns:repeat(2,1fr); gap:40px 20px; }
+    .fp { position:static; width:auto; margin:14px auto 0; transform:none; box-shadow:none; }
+    .fp-3 { transform:none; }
+    .feature-pin { height:auto; flex-direction:column; padding:90px 22px; gap:8px; }
     .card { padding:32px 24px; }
   }
+  @media (prefers-reduced-motion:reduce){ html{scroll-behavior:auto;} .scroll-cue::after{animation:none;} }
 </style>
 </head>
 <body>
 <div class="topbar"><div class="wrap">
   <div class="logo" id="logo"><span class="mark"></span>webgen</div>
-  <div class="langbox"><span id="lang-label"></span><select id="lang"></select></div>
+  <div class="topnav">
+    <div class="langbox"><span id="lang-label"></span><select id="lang"></select></div>
+    <button class="nav-cta" id="nav-cta"></button>
+  </div>
 </div></div>
 
 <div class="stepper hidden" id="stepper">
@@ -167,37 +206,79 @@
   <div class="s" data-step="3"><span class="n">3</span><span id="step-done"></span></div>
 </div>
 
-<main>
-  <!-- Homepage -->
-  <section id="home-step" class="step on">
-    <section class="hero">
+<!-- ===================== LANDING (home) ===================== -->
+<div id="home-step" class="step on lp">
+  <!-- Hero -->
+  <section class="lp-hero">
+    <div class="hero-inner">
       <h1 id="hero-title"></h1>
       <p class="lead" id="app-sub"></p>
       <div class="cta-row">
         <button class="btn big" id="home-cta"></button>
         <button class="linkarrow" id="see-how"></button>
       </div>
-      <div class="mock" aria-hidden="true">
-        <div class="bar"><span></span><span></span><span></span></div>
-        <div class="screen">
-          <div class="m-h1"></div>
-          <div class="m-p"></div>
-          <div class="m-btn"></div>
-          <div class="m-row"><div class="m-card"></div><div class="m-card"></div><div class="m-card"></div></div>
-        </div>
-      </div>
-    </section>
-    <section class="section alt" id="how">
-      <h2 class="center" id="how-title"></h2>
-      <div class="how-grid">
-        <div class="how-card"><div class="num">1</div><h3 id="how-1-t"></h3><p id="how-1-d"></p></div>
-        <div class="how-card"><div class="num">2</div><h3 id="how-2-t"></h3><p id="how-2-d"></p></div>
-        <div class="how-card"><div class="num">3</div><h3 id="how-3-t"></h3><p id="how-3-d"></p></div>
-      </div>
-    </section>
+    </div>
+    <div class="scroll-cue"><span id="scroll-cue"></span></div>
   </section>
 
-  <!-- Brief -->
+  <!-- Stats (dark) -->
+  <section class="lp-stats" id="stats">
+    <div class="stats-grid">
+      <div class="stat"><div class="n" id="stat-1-n"></div><div class="l" id="stat-1-l"></div></div>
+      <div class="stat"><div class="n" id="stat-2-n"></div><div class="l" id="stat-2-l"></div></div>
+      <div class="stat"><div class="n" id="stat-3-n"></div><div class="l" id="stat-3-l"></div></div>
+      <div class="stat"><div class="n" id="stat-4-n"></div><div class="l" id="stat-4-l"></div></div>
+    </div>
+  </section>
+
+  <!-- Trusted by -->
+  <section class="lp-trusted">
+    <div class="eyebrow" id="trusted-eyebrow"></div>
+    <div class="logos">
+      <span>Lumen</span><span>Nordlicht</span><span>Atlas</span>
+      <span>Vela</span><span>Form&amp;Co</span><span>Hearth</span>
+    </div>
+  </section>
+
+  <!-- Feature reveal (pinned) -->
+  <section class="lp-feature">
+    <div class="feature-pin">
+      <div class="feature-center"><h2 id="feat-title"></h2><p id="feat-sub"></p></div>
+      <div class="fp fp-1"><h3 id="feat-1-t"></h3><p id="feat-1-d"></p></div>
+      <div class="fp fp-2"><h3 id="feat-2-t"></h3><p id="feat-2-d"></p></div>
+      <div class="fp fp-3"><h3 id="feat-3-t"></h3><p id="feat-3-d"></p></div>
+    </div>
+  </section>
+
+  <!-- Showcase (horizontal) -->
+  <section class="lp-showcase">
+    <div class="showcase-head"><h2 id="show-title"></h2></div>
+    <div class="showcase-view">
+      <div class="showcase-track">
+        <div class="sc-card"><h3 id="show-1-t"></h3><p id="show-1-d"></p></div>
+        <div class="sc-card"><h3 id="show-2-t"></h3><p id="show-2-d"></p></div>
+        <div class="sc-card"><h3 id="show-3-t"></h3><p id="show-3-d"></p></div>
+        <div class="sc-card"><h3 id="show-4-t"></h3><p id="show-4-d"></p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonial -->
+  <section class="lp-quote">
+    <blockquote id="quote-text"></blockquote>
+    <cite id="quote-author"></cite>
+  </section>
+
+  <!-- Closing CTA -->
+  <section class="lp-cta">
+    <h2 id="cta-title"></h2>
+    <p id="cta-sub"></p>
+    <button class="btn big" id="home-cta-2"></button>
+  </section>
+</div>
+
+<!-- ===================== FUNNEL ===================== -->
+<main class="funnel">
   <section id="form-step" class="step">
     <div class="card">
       <h2 id="form-title"></h2>
@@ -212,7 +293,6 @@
     </div>
   </section>
 
-  <!-- Contact -->
   <section id="contact-step" class="step">
     <div class="card">
       <h2 id="contact-title"></h2>
@@ -236,7 +316,6 @@
     </div>
   </section>
 
-  <!-- Thank you -->
   <section id="done-step" class="step">
     <div class="card done-card">
       <div class="check"></div>
@@ -251,11 +330,16 @@
 
 <footer class="app" id="app-footer"></footer>
 
+<!-- GSAP + ScrollTrigger + Lenis (CDN; landing degrades gracefully if absent) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
 <script>
 const $ = (s) => document.querySelector(s);
 let SCHEMA = [], UI = {}, LANG = 'en';
 const multi = {};
 let curStep = 'home';
+let lenis = null, scrollReady = false;
 
 const STEP_NO = { home: 0, brief: 1, contact: 2, done: 3 };
 
@@ -270,49 +354,52 @@ function show(name) {
     s.classList.toggle('active', step === n);
     s.classList.toggle('done', step < n || name === 'done');
   });
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  scrollTop();
+  // Landing has pinned ScrollTriggers; recompute when it re-enters the layout.
+  if (window.ScrollTrigger) requestAnimationFrame(() => ScrollTrigger.refresh());
+}
+
+function scrollTop() {
+  if (lenis) lenis.scrollTo(0, { immediate: true });
+  window.scrollTo(0, 0);
 }
 
 function applyUI() {
   document.documentElement.lang = LANG;
-  // homepage
-  $('#hero-title').textContent = UI.hero_title;
-  $('#app-sub').textContent = UI.app_sub;
-  $('#home-cta').textContent = UI.home_cta;
-  $('#see-how').textContent = UI.see_how;
-  $('#how-title').textContent = UI.how_title;
-  $('#how-1-t').textContent = UI.how_1_t; $('#how-1-d').textContent = UI.how_1_d;
-  $('#how-2-t').textContent = UI.how_2_t; $('#how-2-d').textContent = UI.how_2_d;
-  $('#how-3-t').textContent = UI.how_3_t; $('#how-3-d').textContent = UI.how_3_d;
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  // landing — hero
+  set('hero-title', UI.hero_title); set('app-sub', UI.app_sub);
+  set('home-cta', UI.home_cta); set('home-cta-2', UI.home_cta);
+  set('see-how', UI.see_how); set('scroll-cue', UI.scroll_cue);
+  set('nav-cta', UI.nav_start);
+  // stats
+  for (let i = 1; i <= 4; i++) { set('stat-'+i+'-n', UI['stat_'+i+'_n']); set('stat-'+i+'-l', UI['stat_'+i+'_l']); }
+  set('trusted-eyebrow', UI.trusted_eyebrow);
+  // feature
+  set('feat-title', UI.feat_title); set('feat-sub', UI.feat_sub);
+  for (let i = 1; i <= 3; i++) { set('feat-'+i+'-t', UI['feat_'+i+'_t']); set('feat-'+i+'-d', UI['feat_'+i+'_d']); }
+  // showcase
+  set('show-title', UI.show_title);
+  for (let i = 1; i <= 4; i++) { set('show-'+i+'-t', UI['show_'+i+'_t']); set('show-'+i+'-d', UI['show_'+i+'_d']); }
+  // testimonial + cta
+  set('quote-text', UI.quote_text); set('quote-author', UI.quote_author);
+  set('cta-title', UI.cta_title); set('cta-sub', UI.cta_sub);
   // stepper
-  $('#step-brief').textContent = UI.step_brief;
-  $('#step-contact').textContent = UI.step_contact;
-  $('#step-done').textContent = UI.step_done;
+  set('step-brief', UI.step_brief); set('step-contact', UI.step_contact); set('step-done', UI.step_done);
   // brief
-  $('#form-title').textContent = UI.form_title;
-  $('#form-sub').textContent = UI.form_sub;
-  $('#brief-back').textContent = UI.back_btn;
-  $('#to-contact').textContent = UI.continue_btn;
+  set('form-title', UI.form_title); set('form-sub', UI.form_sub);
+  set('brief-back', UI.back_btn); set('to-contact', UI.continue_btn);
   // contact
-  $('#contact-title').textContent = UI.contact_title;
-  $('#contact-sub').textContent = UI.contact_sub;
-  $('#l-cname').textContent = UI.contact_name;
-  $('#l-cemail').textContent = UI.contact_email;
+  set('contact-title', UI.contact_title); set('contact-sub', UI.contact_sub);
+  set('l-cname', UI.contact_name); set('l-cemail', UI.contact_email);
   $('#l-cphone').innerHTML = UI.contact_phone + ` <span class="hint">(${UI.optional})</span>`;
   $('#l-cmsg').innerHTML = UI.contact_message + ` <span class="hint">(${UI.optional})</span>`;
-  $('#c_name').placeholder = UI.contact_name_ph;
-  $('#c_email').placeholder = UI.contact_email_ph;
-  $('#c_phone').placeholder = UI.contact_phone_ph;
-  $('#c_message').placeholder = UI.contact_message_ph;
-  $('#contact-back').textContent = UI.back_btn;
-  $('#submit').textContent = UI.submit_btn;
-  // thank-you
-  $('#thanks-title').textContent = UI.thanks_title;
-  $('#thanks-sub').textContent = UI.thanks_sub;
-  $('#restart').textContent = UI.thanks_back;
-  // chrome
-  $('#lang-label').textContent = UI.lang_label;
-  $('#app-footer').textContent = UI.app_footer;
+  $('#c_name').placeholder = UI.contact_name_ph; $('#c_email').placeholder = UI.contact_email_ph;
+  $('#c_phone').placeholder = UI.contact_phone_ph; $('#c_message').placeholder = UI.contact_message_ph;
+  set('contact-back', UI.back_btn); set('submit', UI.submit_btn);
+  // thanks + chrome
+  set('thanks-title', UI.thanks_title); set('thanks-sub', UI.thanks_sub); set('restart', UI.thanks_back);
+  set('lang-label', UI.lang_label); set('app-footer', UI.app_footer);
 }
 
 async function loadSchema(lang, first) {
@@ -322,7 +409,8 @@ async function loadSchema(lang, first) {
   applyUI();
   buildLangSelect(data.languages);
   buildForm();
-  if (first) show('home'); else show(curStep);
+  if (first) { show('home'); initScroll(); }
+  else { show(curStep); if (window.ScrollTrigger) requestAnimationFrame(() => ScrollTrigger.refresh()); }
 }
 
 function buildLangSelect(languages) {
@@ -429,9 +517,97 @@ function restart() {
   show('brief');
 }
 
+// ---- Scrollytelling (GSAP + ScrollTrigger + Lenis). All optional/enhancement. ----
+function initScroll() {
+  if (scrollReady) return;
+  scrollReady = true;
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!window.gsap || !window.ScrollTrigger || reduce) return;   // graceful: content stays visible
+  gsap.registerPlugin(ScrollTrigger);
+
+  // Lenis smooth scroll, wired into GSAP's ticker + ScrollTrigger.
+  if (window.Lenis) {
+    lenis = new Lenis({ duration: 1.05, easing: t => Math.min(1, 1.001 - Math.pow(2, -10 * t)) });
+    lenis.on('scroll', ScrollTrigger.update);
+    gsap.ticker.add((time) => lenis.raf(time * 1000));
+    gsap.ticker.lagSmoothing(0);
+  }
+
+  const ease = 'power3.out';
+
+  // Hero: scale up + fade + blur as it leaves.
+  gsap.to('.hero-inner', {
+    scrollTrigger: { trigger: '.lp-hero', start: 'top top', end: 'bottom top', scrub: true },
+    scale: 1.18, opacity: 0, filter: 'blur(10px)', ease: 'none',
+  });
+  gsap.to('.scroll-cue', {
+    scrollTrigger: { trigger: '.lp-hero', start: 'top top', end: '30% top', scrub: true }, opacity: 0,
+  });
+
+  // Stats: staggered rise + de-blur.
+  gsap.from('.stat', {
+    scrollTrigger: { trigger: '.lp-stats', start: 'top 78%' },
+    y: 48, opacity: 0, filter: 'blur(8px)', stagger: 0.12, duration: 0.9, ease,
+  });
+
+  // Trusted logos: gentle stagger.
+  gsap.from('.logos span', {
+    scrollTrigger: { trigger: '.lp-trusted', start: 'top 82%' },
+    y: 22, opacity: 0, stagger: 0.07, duration: 0.7, ease,
+  });
+
+  // Testimonial: scale/blur in.
+  gsap.from('.lp-quote blockquote', {
+    scrollTrigger: { trigger: '.lp-quote', start: 'top 72%' },
+    scale: 0.92, opacity: 0, filter: 'blur(10px)', duration: 1, ease,
+  });
+  gsap.from('.lp-quote cite', {
+    scrollTrigger: { trigger: '.lp-quote', start: 'top 66%' }, y: 16, opacity: 0, duration: 0.8, ease,
+  });
+
+  // Closing CTA: assembles from its parts.
+  gsap.from('.lp-cta > *', {
+    scrollTrigger: { trigger: '.lp-cta', start: 'top 75%' },
+    y: 40, opacity: 0, filter: 'blur(6px)', stagger: 0.14, duration: 0.9, ease,
+  });
+
+  // Desktop-only heavy effects: pinned feature reveal + horizontal showcase.
+  const mm = gsap.matchMedia();
+  mm.add('(min-width: 760px)', () => {
+    // Feature reveal — center stays pinned, supporting cards fly in around it.
+    const ft = gsap.timeline({
+      scrollTrigger: { trigger: '.lp-feature', start: 'top top', end: '+=180%', scrub: true, pin: '.feature-pin' },
+    });
+    ft.from('.feature-center', { scale: 0.8, opacity: 0, filter: 'blur(12px)', ease: 'none' })
+      .from('.fp-1', { x: -120, y: -30, opacity: 0, filter: 'blur(8px)', ease: 'none' }, 0.15)
+      .from('.fp-2', { x: 120, y: -30, opacity: 0, filter: 'blur(8px)', ease: 'none' }, 0.35)
+      .from('.fp-3', { y: 120, opacity: 0, filter: 'blur(8px)', ease: 'none' }, 0.55);
+
+    // Horizontal showcase — pin and translate the track on scroll.
+    const track = document.querySelector('.showcase-track');
+    const dist = () => Math.max(0, track.scrollWidth - window.innerWidth + window.innerWidth * 0.16);
+    gsap.to(track, {
+      x: () => -dist(), ease: 'none',
+      scrollTrigger: {
+        trigger: '.lp-showcase', start: 'top top', end: () => '+=' + dist(),
+        scrub: 1, pin: true, invalidateOnRefresh: true, anticipatePin: 1,
+      },
+    });
+
+    return () => {};   // matchMedia cleanup handled by GSAP
+  });
+
+  ScrollTrigger.refresh();
+}
+
 $('#logo').onclick = () => show('home');
+$('#nav-cta').onclick = () => show('brief');
 $('#home-cta').onclick = () => show('brief');
-$('#see-how').onclick = () => $('#how').scrollIntoView({ behavior: 'smooth' });
+$('#home-cta-2').onclick = () => show('brief');
+$('#see-how').onclick = () => {
+  const t = document.querySelector('.lp-stats');
+  if (lenis) lenis.scrollTo(t); else t.scrollIntoView({ behavior: 'smooth' });
+};
 $('#brief-back').onclick = () => show('home');
 $('#to-contact').onclick = goContact;
 $('#contact-back').onclick = () => show('brief');
