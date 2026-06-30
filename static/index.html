@@ -102,14 +102,14 @@
                      75%{opacity:1;transform:translate(-50%,13px)} 100%{opacity:0;transform:translate(-50%,15px)} }
 
   /* stats (dark) */
-  .lp-stats { position:relative; overflow:hidden; background:var(--dark); color:var(--on-dark); padding:120px 22px; }
+  .lp-stats { position:relative; overflow:hidden; background:var(--dark); color:var(--on-dark); padding:54px 22px; }
   .lp-stats::before { content:""; position:absolute; inset:0; z-index:0;
-        background:radial-gradient(640px 320px at 18% 0%, rgba(0,113,227,.30), transparent 62%),
-                   radial-gradient(560px 320px at 92% 112%, rgba(124,58,237,.26), transparent 60%); }
+        background:radial-gradient(640px 260px at 18% 0%, rgba(0,113,227,.30), transparent 62%),
+                   radial-gradient(560px 260px at 92% 112%, rgba(124,58,237,.26), transparent 60%); }
   .stats-grid { position:relative; z-index:1; max-width:1080px; margin:0 auto;
-                display:grid; grid-template-columns:repeat(4,1fr); gap:30px; }
+                display:grid; grid-template-columns:repeat(4,1fr); gap:24px; }
   .stat { text-align:center; }
-  .stat .n { font-size:clamp(40px,5.5vw,68px); font-weight:600; letter-spacing:-.03em;
+  .stat .n { font-size:clamp(32px,4.2vw,50px); font-weight:600; letter-spacing:-.03em;
              background:linear-gradient(180deg,#fff,#9bbcff); -webkit-background-clip:text;
              background-clip:text; -webkit-text-fill-color:transparent; }
   .stat .l { color:var(--on-dark-mut); font-size:16px; margin-top:8px; }
@@ -133,7 +133,7 @@
   .sc-card p { font-size:17px; margin:10px 0 0; opacity:.92; }
 
   /* closing cta (light) */
-  .lp-cta { position:relative; overflow:hidden; background:var(--bg); padding:140px 22px 150px; text-align:center; }
+  .lp-cta { position:relative; overflow:hidden; background:var(--bg); padding:120px 22px 64px; text-align:center; }
   .lp-cta::before { content:""; position:absolute; inset:0; z-index:0;
         background:radial-gradient(720px 420px at 50% 28%, #e9f1ff, transparent 66%); }
   .lp-cta > * { position:relative; z-index:1; }
