@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>webgen — website generation</title>
+<style>
+  :root {
+    --accent:#4f46e5; --accent-dark:#4338ca; --accent-soft:#eef2ff;
+    --ink:#0f172a; --body:#334155; --muted:#64748b; --line:#e5e7eb;
+    --bg:#f7f8fa; --card:#ffffff;
+    --shadow:0 1px 2px rgba(15,23,42,.04), 0 8px 24px rgba(15,23,42,.06);
+    --radius:16px;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; color:var(--body); background:var(--bg);
+         font:16px/1.65 -apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+         -webkit-font-smoothing:antialiased; }
+  h1,h2,h3 { color:var(--ink); line-height:1.2; }
+  .wrap { max-width:1040px; margin:0 auto; padding:0 24px; }
+
+  /* top bar */
+  .topbar { background:rgba(255,255,255,.85); backdrop-filter:blur(10px);
+            border-bottom:1px solid var(--line); position:sticky; top:0; z-index:20; }
+  .topbar .wrap { display:flex; align-items:center; justify-content:space-between;
+                  height:64px; }
+  .logo { display:flex; align-items:center; gap:10px; font-weight:700; color:var(--ink);
+          font-size:18px; letter-spacing:-.01em; }
+  .logo .mark { width:28px; height:28px; border-radius:8px;
+                background:linear-gradient(135deg,var(--accent),#8b5cf6);
+                box-shadow:0 2px 8px rgba(79,70,229,.4); }
+  .langbox { font-size:14px; color:var(--muted); display:flex; align-items:center; gap:8px; }
+  .langbox select { font:inherit; padding:7px 10px; border:1px solid var(--line);
+                    border-radius:9px; background:#fff; color:var(--ink); cursor:pointer; }
+
+  /* hero */
+  .hero { text-align:center; padding:60px 24px 8px; }
+  .hero h1 { font-size:40px; letter-spacing:-.02em; margin:0 auto; max-width:18ch; }
+  .hero p { color:var(--muted); font-size:18px; max-width:56ch; margin:16px auto 0; }
+
+  /* stepper */
+  .stepper { display:flex; align-items:center; justify-content:center; gap:8px;
+             margin:34px auto 30px; flex-wrap:wrap; }
+  .stepper .s { display:flex; align-items:center; gap:9px; color:var(--muted);
+                font-size:14px; font-weight:600; }
+  .stepper .n { width:26px; height:26px; border-radius:50%; border:2px solid var(--line);
+                display:grid; place-items:center; font-size:13px; background:#fff; }
+  .stepper .s.active { color:var(--ink); }
+  .stepper .s.active .n { border-color:var(--accent); color:var(--accent);
+                          background:var(--accent-soft); }
+  .stepper .s.done .n { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .stepper .bar { width:34px; height:2px; background:var(--line); }
+
+  main { padding:0 24px 72px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+          padding:32px; margin:0 auto; max-width:680px; box-shadow:var(--shadow); }
+  .card > h2 { font-size:22px; margin:0; letter-spacing:-.01em; }
+  .card > .sub { color:var(--muted); margin-top:6px; font-size:15px; }
+
+  label { display:block; font-weight:600; color:var(--ink); margin:22px 0 7px; font-size:15px; }
+  .hint { font-weight:400; color:var(--muted); font-size:13px; }
+  input[type=text], select, textarea {
+    width:100%; padding:12px 14px; border:1px solid var(--line); border-radius:11px;
+    font:inherit; background:#fff; color:var(--ink); transition:border-color .15s, box-shadow .15s; }
+  input[type=text]:focus, select:focus, textarea:focus { outline:none;
+    border-color:var(--accent); box-shadow:0 0 0 4px var(--accent-soft); }
+  input[type=color] { width:54px; height:40px; padding:3px; border:1px solid var(--line);
+    border-radius:10px; background:#fff; cursor:pointer; }
+  textarea { resize:vertical; min-height:86px; }
+  .chips { display:flex; flex-wrap:wrap; gap:9px; margin-top:7px; }
+  .chip { padding:9px 15px; border:1px solid var(--line); border-radius:999px; cursor:pointer;
+          user-select:none; background:#fff; font-size:14px; transition:all .12s; }
+  .chip:hover { border-color:#cbd5e1; }
+  .chip.on { background:var(--accent); color:#fff; border-color:var(--accent); }
+
+  .btn { background:var(--accent); color:#fff; border:none; border-radius:11px;
+         padding:14px 26px; font:inherit; font-weight:600; cursor:pointer; margin-top:28px;
+         box-shadow:0 2px 8px rgba(79,70,229,.25); transition:background .15s, transform .05s; }
+  .btn:hover { background:var(--accent-dark); }
+  .btn:active { transform:translateY(1px); }
+  .btn:disabled { opacity:.55; cursor:default; box-shadow:none; }
+  .err { color:#b91c1c; margin-top:14px; font-size:14px; }
+
+  /* work */
+  .tasks { list-style:none; padding:0; margin:22px 0 0; }
+  .tasks li { display:flex; align-items:center; gap:13px; padding:10px 0; color:var(--muted);
+              border-top:1px solid #f1f5f9; }
+  .tasks li:first-child { border-top:0; }
+  .tasks li.done { color:var(--ink); }
+  .tasks li.running { color:var(--ink); font-weight:500; }
+  .dot { width:18px; height:18px; border-radius:50%; border:2px solid var(--line); flex:0 0 auto; }
+  .tasks li.running .dot { border-color:var(--accent); border-top-color:transparent;
+                           animation:spin .8s linear infinite; }
+  .tasks li.done .dot { background:var(--accent); border-color:var(--accent); position:relative; }
+  .tasks li.done .dot::after { content:""; position:absolute; left:5px; top:2px; width:4px;
+    height:8px; border:solid #fff; border-width:0 2px 2px 0; transform:rotate(45deg); }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .engine { font-size:12px; color:#94a3b8; margin-top:14px; }
+
+  /* pick */
+  .pick-head { text-align:center; margin-bottom:26px; }
+  .pick-head h2 { font-size:26px; letter-spacing:-.01em; margin:0; }
+  .pick-head .sub { color:var(--muted); margin-top:8px; }
+  .variants { display:flex; flex-direction:column; gap:28px; max-width:940px; margin:0 auto; }
+  .variant { background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+             overflow:hidden; box-shadow:var(--shadow); transition:box-shadow .15s, border-color .15s; }
+  .variant.sel { border-color:var(--accent); box-shadow:0 0 0 2px var(--accent), var(--shadow); }
+  .vhead { padding:18px 18px 0; display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  .vhead h3 { margin:0; font-size:17px; }
+  .badge { font-size:12px; font-weight:600; color:var(--accent); background:var(--accent-soft);
+           padding:4px 10px; border-radius:999px; display:none; }
+  .variant.sel .badge { display:inline-block; }
+  .variant .blurb { padding:4px 18px 14px; color:var(--muted); font-size:13.5px; }
+  .pagebar { display:flex; gap:7px; padding:0 18px 12px; flex-wrap:wrap; }
+  .pagebar button { border:1px solid var(--line); background:#fff; border-radius:8px;
+           padding:5px 11px; font-size:13px; cursor:pointer; color:var(--muted); }
+  .pagebar button.on { color:var(--accent); border-color:var(--accent); background:var(--accent-soft); }
+  .frame { height:680px; border:0; border-top:1px solid var(--line); border-bottom:1px solid var(--line);
+           width:100%; background:#fff; transition:height .2s; }
+  .variant.big .frame { height:88vh; }
+  .pagebar .expand { margin-left:auto; }
+  .vbtns { display:flex; gap:9px; padding:14px 18px; }
+  .vbtns a, .vbtns button { flex:1; text-align:center; text-decoration:none; border-radius:10px;
+           padding:10px; font:inherit; font-size:14px; font-weight:600; cursor:pointer;
+           border:1px solid var(--line); background:#fff; color:var(--ink); transition:all .12s; }
+  .vbtns a:hover, .vbtns .ghost:hover { border-color:#cbd5e1; background:#f8fafc; }
+  .vbtns .pick { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .vbtns .pick:hover { background:var(--accent-dark); }
+
+  footer.app { text-align:center; color:var(--muted); font-size:13px; padding:28px 24px 40px;
+               border-top:1px solid var(--line); }
+
+  .step { display:none; }
+  .step.on { display:block; }
+  @media (max-width:560px) { .hero h1 { font-size:30px; } .stepper .bar { width:18px; } }
+</style>
+</head>
+<body>
+<div class="topbar"><div class="wrap">
+  <div class="logo"><span class="mark"></span>webgen</div>
+  <div class="langbox"><span id="lang-label"></span><select id="lang"></select></div>
+</div></div>
+
+<section class="hero">
+  <h1 id="hero-title"></h1>
+  <p id="app-sub"></p>
+</section>
+
+<div class="stepper" id="stepper">
+  <div class="s" data-step="1"><span class="n">1</span><span id="step-brief"></span></div>
+  <div class="bar"></div>
+  <div class="s" data-step="2"><span class="n">2</span><span id="step-generate"></span></div>
+  <div class="bar"></div>
+  <div class="s" data-step="3"><span class="n">3</span><span id="step-choose"></span></div>
+</div>
+
+<main>
+  <section id="form-step" class="step on">
+    <div class="card">
+      <h2 id="form-title"></h2>
+      <div class="sub" id="form-sub"></div>
+      <form id="brief-form"></form>
+      <div class="err" id="form-err"></div>
+      <button class="btn" id="go"></button>
+    </div>
+  </section>
+
+  <section id="work-step" class="step">
+    <div class="card">
+      <h2 id="work-title"></h2>
+      <div class="sub" id="work-sub"></div>
+      <ul class="tasks" id="tasks"></ul>
+      <div class="engine" id="engine"></div>
+    </div>
+  </section>
+
+  <section id="pick-step" class="step">
+    <div class="pick-head">
+      <h2 id="pick-title"></h2>
+      <div class="sub" id="pick-sub"></div>
+    </div>
+    <div class="variants" id="variants"></div>
+  </section>
+</main>
+
+<footer class="app" id="app-footer"></footer>
+
+<script>
+const $ = (s) => document.querySelector(s);
+let SCHEMA = [], UI = {}, LANG = 'en';
+const multi = {};
+
+function showStep(id, stepNo) {
+  document.querySelectorAll('.step').forEach(e => e.classList.remove('on'));
+  $(id).classList.add('on');
+  setStepper(stepNo);
+}
+function setStepper(n) {
+  document.querySelectorAll('.stepper .s').forEach(s => {
+    const step = +s.dataset.step;
+    s.classList.toggle('active', step === n);
+    s.classList.toggle('done', step < n);
+  });
+}
+
+function applyUI() {
+  document.documentElement.lang = LANG;
+  $('#hero-title').textContent = UI.hero_title;
+  $('#app-sub').textContent = UI.app_sub;
+  $('#step-brief').textContent = UI.step_brief;
+  $('#step-generate').textContent = UI.step_generate;
+  $('#step-choose').textContent = UI.step_choose;
+  $('#form-title').textContent = UI.form_title;
+  $('#form-sub').textContent = UI.form_sub;
+  $('#go').textContent = UI.generate_btn;
+  $('#work-title').textContent = UI.work_title;
+  $('#work-sub').textContent = UI.work_sub;
+  $('#pick-title').textContent = UI.pick_title;
+  $('#pick-sub').textContent = UI.pick_sub;
+  $('#lang-label').textContent = UI.lang_label;
+  $('#app-footer').textContent = UI.app_footer;
+}
+
+async function loadSchema(lang) {
+  const r = await fetch('/api/schema?lang=' + encodeURIComponent(lang || ''));
+  const data = await r.json();
+  LANG = data.lang; UI = data.ui; SCHEMA = data.questions;
+  applyUI();
+  buildLangSelect(data.languages);
+  buildForm();
+  setStepper(1);
+}
+
+function buildLangSelect(languages) {
+  const sel = $('#lang');
+  sel.innerHTML = Object.entries(languages)
+    .map(([code, name]) => `<option value="${code}" ${code===LANG?'selected':''}>${name}</option>`).join('');
+  sel.onchange = () => loadSchema(sel.value);
+}
+
+function buildForm() {
+  const form = $('#brief-form');
+  form.innerHTML = '';
+  for (const k of Object.keys(multi)) delete multi[k];
+  for (const q of SCHEMA) {
+    const wrap = document.createElement('div');
+    const opt = q.required ? '' : ` <span class="hint">(${UI.optional})</span>`;
+    const lbl = `<label>${q.label}${opt}</label>`;
+    if (q.type === 'text') {
+      wrap.innerHTML = lbl + `<input type="text" id="f_${q.id}" placeholder="${q.placeholder||''}" value="${q.default||''}">`;
+    } else if (q.type === 'textarea') {
+      wrap.innerHTML = lbl + `<textarea id="f_${q.id}" placeholder="${q.placeholder||''}">${q.default||''}</textarea>`;
+    } else if (q.type === 'color') {
+      wrap.innerHTML = lbl + `<input type="color" id="f_${q.id}" value="${q.default||'#4f46e5'}">`;
+    } else if (q.type === 'select') {
+      const opts = q.options.map(o => `<option value="${o.value}" ${o.value===q.default?'selected':''}>${o.label}</option>`).join('');
+      wrap.innerHTML = lbl + `<select id="f_${q.id}">${opts}</select>`;
+    } else if (q.type === 'multiselect') {
+      const def = new Set(q.default || []);
+      multi[q.id] = def;
+      const chips = q.options.map(o =>
+        `<span class="chip ${def.has(o.value)?'on':''}" data-q="${q.id}" data-o="${o.value}">${o.label}</span>`).join('');
+      wrap.innerHTML = lbl + `<div class="chips">${chips}</div>`;
+    }
+    form.appendChild(wrap);
+  }
+  form.querySelectorAll('.chip').forEach(c => c.onclick = () => {
+    const set = multi[c.dataset.q];
+    if (set.has(c.dataset.o)) set.delete(c.dataset.o); else set.add(c.dataset.o);
+    c.classList.toggle('on');
+  });
+}
+
+function collect() {
+  const a = { lang: LANG };
+  for (const q of SCHEMA) {
+    if (q.type === 'multiselect') a[q.id] = [...multi[q.id]];
+    else {
+      const el = $('#f_' + q.id);
+      a[q.id] = el ? el.value : '';
+      if (q.type === 'color' && a[q.id] === '#4f46e5') a[q.id] = '';
+    }
+  }
+  return a;
+}
+
+async function generate() {
+  $('#form-err').textContent = '';
+  $('#go').disabled = true;
+  const r = await fetch('/api/generate', {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({answers: collect()}),
+  });
+  const data = await r.json();
+  $('#go').disabled = false;
+  if (!r.ok) { $('#form-err').textContent = data.error || UI.err_generic; return; }
+  showStep('#work-step', 2);
+  poll(data.job_id);
+}
+
+async function poll(jobId) {
+  const r = await fetch('/api/job/' + jobId);
+  const job = await r.json();
+  $('#engine').textContent = UI.engine_label + ': ' + (job.engine || '?');
+  $('#tasks').innerHTML = job.tasks.map(t =>
+    `<li class="${t.status}"><span class="dot"></span>${t.label}</li>`).join('');
+  if (job.status === 'error') { $('#engine').textContent = (job.error || UI.err_generic); return; }
+  if (job.status === 'done') { renderVariants(jobId, job.variants); return; }
+  setTimeout(() => poll(jobId), 500);
+}
+
+function renderVariants(jobId, variants) {
+  showStep('#pick-step', 3);
+  const box = $('#variants');
+  box.innerHTML = '';
+  for (const v of variants) {
+    const el = document.createElement('div');
+    el.className = 'variant';
+    const base = `/preview/${jobId}/${v.key}/`;
+    const pages = v.pages.map((p, i) =>
+      `<button class="${i===0?'on':''}" data-file="${p.file}">${p.label}</button>`).join('');
+    el.innerHTML = `
+      <div class="vhead"><h3>${v.title}</h3><span class="badge">${UI.selected}</span></div>
+      <div class="blurb">${v.blurb}</div>
+      <div class="pagebar">${pages}<button class="expand" title="Expand preview">⤢</button></div>
+      <iframe class="frame" src="${base}index.html"></iframe>
+      <div class="vbtns">
+        <a class="ghost" href="${base}index.html" target="_blank">${UI.open_full}</a>
+        <a href="/download/${jobId}/${v.key}">${UI.download_zip}</a>
+        <button class="pick">${UI.choose_this}</button>
+      </div>`;
+    const frame = el.querySelector('.frame');
+    el.querySelectorAll('.pagebar button:not(.expand)').forEach(b => b.onclick = () => {
+      el.querySelectorAll('.pagebar button:not(.expand)').forEach(x => x.classList.remove('on'));
+      b.classList.add('on');
+      frame.src = base + b.dataset.file;
+    });
+    el.querySelector('.expand').onclick = () => el.classList.toggle('big');
+    el.querySelector('.pick').onclick = () => {
+      box.querySelectorAll('.variant').forEach(x => x.classList.remove('sel'));
+      el.classList.add('sel');
+    };
+    box.appendChild(el);
+  }
+}
+
+$('#go').onclick = generate;
+loadSchema(navigator.language || 'en');
+</script>
+</body>
+</html>

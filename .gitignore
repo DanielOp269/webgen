@@ -1,0 +1,9 @@
+# Runtime job store (per-user generated data, not source)
+data/jobs/
+
+# Python
+__pycache__/
+*.py[cod]
+
+# macOS
+.DS_Store
