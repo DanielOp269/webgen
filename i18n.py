@@ -141,7 +141,8 @@ UI = {
         "nav_design": "Design",
         "nav_details": "Business details",
         "nav_golive": "Getting live",
-        "nav_section": "Your website",
+        "nav_section": "Website console",
+        "console_preview_label": "your website — live preview",
         "sec_site_h": "Your website",
         "sec_site_sub": "This is your live website. Edit it yourself, or view it "
                         "as your visitors see it.",
@@ -296,7 +297,8 @@ UI = {
         "nav_design": "Design",
         "nav_details": "Unternehmensdaten",
         "nav_golive": "Live gehen",
-        "nav_section": "Ihre Website",
+        "nav_section": "Website-Konsole",
+        "console_preview_label": "Ihre Website — Live-Vorschau",
         "sec_site_h": "Ihre Website",
         "sec_site_sub": "Das ist Ihre Live-Website. Bearbeiten Sie sie selbst oder "
                         "sehen Sie sie so, wie Ihre Besucher sie sehen.",

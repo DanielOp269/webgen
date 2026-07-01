@@ -103,70 +103,93 @@ main { padding: 24px 0 64px; }
 @media (max-width: 760px) { .mywebsite { grid-template-columns: 1fr; } }
 
 /* ---- console shell (left-nav dashboard) ---- */
-body.app { background: #f1f5f9; }
-.console { display: grid; grid-template-columns: 248px 1fr; min-height: 100vh; }
-.side { background: #fff; border-right: 1px solid #e2e8f0; padding: 18px 14px;
+body.app { background: #f7f8fa; color: #111827; }
+.console { display: grid; grid-template-columns: 264px 1fr; min-height: 100vh; }
+.side { background: #fff; border-right: 1px solid #edeff2; padding: 16px 12px;
    display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; }
-.side .brand { font-weight: 800; font-size: 17px; padding: 6px 10px 2px; color: #0f172a; }
-.side .brand small { display: block; font-weight: 500; font-size: 12px;
-   color: #64748b; margin-top: 3px; }
-.side nav { display: flex; flex-direction: column; gap: 3px; margin-top: 16px; }
-.nav-item { display: flex; align-items: center; gap: 11px; padding: 10px 12px;
-   border-radius: 10px; color: #334155; font-weight: 600; font-size: 15px;
+.brand { display: flex; align-items: center; gap: 11px; padding: 8px 8px 16px; }
+.brand .logo { width: 38px; height: 38px; border-radius: 9px; flex: none;
+   background: linear-gradient(135deg, #16a34a, #157f43); color: #fff;
+   font-weight: 800; font-size: 14px; letter-spacing: .02em;
+   display: flex; align-items: center; justify-content: center; }
+.brand .bn { font-weight: 700; font-size: 14px; line-height: 1.25; color: #111827; }
+.brand .bt { font-size: 12px; color: #9aa3af; margin-top: 2px; }
+.side nav { display: flex; flex-direction: column; gap: 2px; }
+.nav-item { display: flex; align-items: center; gap: 11px; padding: 9px 11px;
+   border-radius: 8px; color: #4b5563; font-weight: 500; font-size: 14.5px;
    text-decoration: none; }
-.nav-item:hover { background: #f1f5f9; }
-.nav-item.active { background: #16a34a14; color: #15803d; }
-.nav-item .ic { width: 20px; text-align: center; font-size: 16px; }
+.nav-item svg { width: 19px; height: 19px; color: #9aa3af; flex: none; }
+.nav-item:hover { background: #f4f5f7; color: #111827; }
+.nav-item:hover svg { color: #6b7280; }
+.nav-item.active { background: #f0fdf4; color: #15803d; font-weight: 600; }
+.nav-item.active svg { color: #16a34a; }
 .side .spacer { flex: 1; }
-.side .foot { border-top: 1px solid #e2e8f0; padding: 12px 10px 2px;
-   color: #94a3b8; font-size: 12px; }
+.side .foot { border-top: 1px solid #edeff2; padding: 12px 8px 2px;
+   color: #9aa3af; font-size: 11.5px; }
 .content { min-width: 0; }
-.chead { background: #fff; border-bottom: 1px solid #e2e8f0; padding: 15px 32px;
-   display: flex; align-items: center; justify-content: space-between;
+.chead { background: #fff; border-bottom: 1px solid #edeff2; padding: 0 32px;
+   height: 64px; display: flex; align-items: center; justify-content: space-between;
    position: sticky; top: 0; z-index: 5; }
-.chead h1 { font-size: 20px; }
-.live-dot { display: inline-flex; align-items: center; gap: 7px; color: #15803d;
-   font-weight: 700; font-size: 13px; }
-.live-dot i { width: 9px; height: 9px; border-radius: 50%; background: #16a34a; }
-.cbody { padding: 28px 32px 64px; max-width: 1040px; }
-.lead-sub { color: #64748b; margin-bottom: 22px; max-width: 64ch; }
-.actions-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
-/* site section */
-.siteview { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px;
-   overflow: hidden; }
-.siteview .frame { position: relative; height: 470px; background: #f8fafc;
-   border-bottom: 1px solid #e2e8f0; overflow: hidden; }
-.siteview .frame iframe { position: absolute; top: 0; left: 0; width: 1200px;
-   height: 1550px; border: 0; transform: scale(.86); transform-origin: top left; }
-.siteview .bar { display: flex; gap: 12px; padding: 16px 18px; flex-wrap: wrap; }
-/* changes section */
-.change-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px;
-   padding: 22px; margin-bottom: 18px; }
-.change-card h3 { font-size: 17px; margin-bottom: 6px; }
-.change-card p { color: #64748b; font-size: 14px; margin-bottom: 14px; max-width: 60ch; }
-.change-card textarea { width: 100%; padding: 12px 14px; border: 1px solid #cbd5e1;
-   border-radius: 10px; font: inherit; resize: vertical; margin-bottom: 12px; }
-.change-card textarea:focus { outline: none; border-color: #2563eb; }
-/* go-live steps */
-.steps { list-style: none; }
-.step { display: flex; gap: 16px; padding: 18px 4px; align-items: center;
-   border-bottom: 1px solid #eef2f6; }
-.step:last-child { border-bottom: 0; }
-.step .marker { flex: none; width: 34px; height: 34px; border-radius: 50%;
-   display: flex; align-items: center; justify-content: center; font-weight: 700; }
-.step.done .marker { background: #16a34a; color: #fff; }
-.step.now .marker { background: #2563eb; color: #fff; }
-.step.next .marker { background: #e2e8f0; color: #94a3b8; }
-.step .line { flex: 1; }
-.step .line h3 { font-size: 16px; }
-.step .line p { color: #64748b; font-size: 14px; }
-.step .tag { flex: none; font-size: 12px; font-weight: 700; padding: 5px 11px;
+.chead h1 { font-size: 18px; font-weight: 600; letter-spacing: -.01em; }
+.live-dot { display: inline-flex; align-items: center; gap: 7px; background: #f0fdf4;
+   color: #15803d; font-weight: 600; font-size: 12.5px; padding: 5px 11px;
    border-radius: 999px; }
-.step.done .tag { background: #16a34a14; color: #15803d; }
-.step.now .tag { background: #2563eb14; color: #1d4ed8; }
-.step.next .tag { background: #f1f5f9; color: #94a3b8; }
-.soon { background: #fff; border: 1px dashed #cbd5e1; border-radius: 14px;
-   padding: 40px 32px; color: #64748b; text-align: center; max-width: 60ch; }
+.live-dot i { width: 7px; height: 7px; border-radius: 50%; background: #16a34a; }
+.cbody { padding: 30px 32px 64px; max-width: 1000px; }
+.lead-sub { color: #6b7280; margin-bottom: 24px; max-width: 64ch; font-size: 15px; }
+.actions-row { display: flex; gap: 10px; align-items: center; }
+.btn.edit { background: #16a34a; color: #fff; border: 0; }
+.btn.edit:hover { background: #15803d; }
+.btn.outline { background: #fff; border: 1px solid #d7dbe0; color: #111827;
+   box-shadow: 0 1px 1px #0000000a; }
+.btn.outline:hover { background: #f9fafb; }
+/* site preview with faux browser chrome */
+.siteview { background: #fff; border: 1px solid #e6e9ee; border-radius: 14px;
+   overflow: hidden; box-shadow: 0 1px 3px #0f172a0d; }
+.browserbar { display: flex; align-items: center; gap: 10px; padding: 11px 14px;
+   border-bottom: 1px solid #edeff2; background: #fbfbfc; }
+.browserbar .dots { display: flex; gap: 6px; }
+.browserbar .dots span { width: 11px; height: 11px; border-radius: 50%; background: #e2e5ea; }
+.browserbar .addr { flex: 1; max-width: 320px; margin: 0 auto; background: #f1f3f5;
+   border-radius: 7px; padding: 6px 12px; font-size: 12.5px; color: #8a94a1;
+   text-align: center; }
+.siteview .frame { position: relative; height: 440px; background: #fff; overflow: hidden; }
+.siteview .frame iframe { position: absolute; top: 0; left: 0; width: 1180px;
+   height: 1500px; border: 0; transform: scale(.847); transform-origin: top left; }
+.siteview .bar { display: flex; gap: 10px; padding: 16px; border-top: 1px solid #edeff2;
+   flex-wrap: wrap; }
+/* changes section */
+.change-card { background: #fff; border: 1px solid #e6e9ee; border-radius: 12px;
+   padding: 22px; margin-bottom: 16px; box-shadow: 0 1px 2px #0f172a08; }
+.change-card h3 { font-size: 16px; margin-bottom: 6px; font-weight: 650; }
+.change-card p { color: #6b7280; font-size: 14px; margin-bottom: 14px; max-width: 60ch; }
+.change-card textarea { width: 100%; padding: 12px 14px; border: 1px solid #d7dbe0;
+   border-radius: 9px; font: inherit; resize: vertical; margin-bottom: 12px; }
+.change-card textarea:focus { outline: none; border-color: #16a34a;
+   box-shadow: 0 0 0 3px #16a34a1f; }
+/* go-live steps */
+.steps { list-style: none; background: #fff; border: 1px solid #e6e9ee;
+   border-radius: 14px; padding: 4px 20px; box-shadow: 0 1px 2px #0f172a08; }
+.step { display: flex; gap: 15px; padding: 18px 0; align-items: center;
+   border-bottom: 1px solid #f1f3f5; }
+.step:last-child { border-bottom: 0; }
+.step .marker { flex: none; width: 32px; height: 32px; border-radius: 50%;
+   display: flex; align-items: center; justify-content: center; font-weight: 700;
+   font-size: 14px; }
+.step.done .marker { background: #16a34a; color: #fff; }
+.step.now .marker { background: #111827; color: #fff; }
+.step.next .marker { background: #eef1f4; color: #9aa3af; }
+.step .line { flex: 1; }
+.step .line h3 { font-size: 15.5px; font-weight: 600; }
+.step .line p { color: #6b7280; font-size: 13.5px; }
+.step .tag { flex: none; font-size: 11.5px; font-weight: 600; padding: 5px 11px;
+   border-radius: 999px; }
+.step.done .tag { background: #f0fdf4; color: #15803d; }
+.step.now .tag { background: #eef2f6; color: #334155; }
+.step.next .tag { background: #f4f5f7; color: #9aa3af; }
+.soon { background: #fff; border: 1px dashed #d7dbe0; border-radius: 12px;
+   padding: 44px 32px; color: #6b7280; text-align: center; max-width: 56ch;
+   box-shadow: 0 1px 2px #0f172a06; }
 @media (max-width: 720px) {
   .console { grid-template-columns: 1fr; }
   .side { position: static; height: auto; }
@@ -255,25 +278,54 @@ def _variant_card(lead: Lead, v_key: str, title: str, blurb: str, accent: str,
 # The console shell (left-nav dashboard) shown once a design is chosen
 # --------------------------------------------------------------------------
 
-_NAV = [
-    ("site", "🏠", "nav_site"),
-    ("changes", "✏️", "nav_changes"),
-    ("design", "🎨", "nav_design"),
-    ("details", "🏷️", "nav_details"),
-    ("golive", "🚀", "nav_golive"),
-]
-_VIEWS = {k for k, _, _ in _NAV}
+# Clean line icons (Lucide), stroked with currentColor.
+def _svg(paths: str) -> str:
+    return (f'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+            f'stroke-width="2" stroke-linecap="round" stroke-linejoin="round">{paths}</svg>')
+
+
+_ICONS = {
+    "site": _svg('<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>'
+                 '<path d="M9 22V12h6v10"/>'),
+    "changes": _svg('<path d="M12 20h9"/>'
+                    '<path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>'),
+    "design": _svg('<rect width="18" height="18" x="3" y="3" rx="2"/>'
+                   '<path d="M3 9h18"/><path d="M9 21V9"/>'),
+    "details": _svg('<rect width="8" height="4" x="8" y="2" rx="1"/>'
+                    '<path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>'
+                    '<path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/>'),
+    "golive": _svg('<path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/>'
+                   '<path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/>'
+                   '<path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/>'
+                   '<path d="M15 12v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/>'),
+}
+_NAV = [("site", "nav_site"), ("changes", "nav_changes"), ("design", "nav_design"),
+        ("details", "nav_details"), ("golive", "nav_golive")]
+_VIEWS = {k for k, _ in _NAV}
+
+
+def _initials(name: str) -> str:
+    parts = [p for p in name.split() if p]
+    if not parts:
+        return "•"
+    if len(parts) == 1:
+        return parts[0][:2].upper()
+    return (parts[0][0] + parts[1][0]).upper()
 
 
 def _sidebar(lead: Lead, active: str, U: dict) -> str:
     lid = _esc(lead.id)
     items = "".join(
         f'<a class="nav-item{" active" if k == active else ""}" '
-        f'href="/c/{lid}?view={k}"><span class="ic">{ic}</span>{_esc(U[label])}</a>'
-        for k, ic, label in _NAV
+        f'href="/c/{lid}?view={k}">{_ICONS[k]}<span>{_esc(U[label])}</span></a>'
+        for k, label in _NAV
     )
     return f"""<aside class="side">
-  <div class="brand">{_esc(lead.brief.name)}<small>{_esc(U['nav_section'])}</small></div>
+  <div class="brand">
+    <div class="logo">{_esc(_initials(lead.brief.name))}</div>
+    <div class="who"><div class="bn">{_esc(lead.brief.name)}</div>
+      <div class="bt">{_esc(U['nav_section'])}</div></div>
+  </div>
   <nav>{items}</nav>
   <div class="spacer"></div>
   <div class="foot">{_esc(U['app_footer'])}</div>
@@ -312,12 +364,16 @@ def _sec_site(lead: Lead, U: dict) -> str:
     lid = _esc(lead.id)
     return f"""<p class="lead-sub">{_esc(U['sec_site_sub'])}</p>
 <div class="siteview">
+  <div class="browserbar">
+    <div class="dots"><span></span><span></span><span></span></div>
+    <div class="addr">{_esc(U['console_preview_label'])}</div>
+  </div>
   <div class="frame">
     <iframe src="/site/{lid}/" scrolling="no" title="{_esc(lead.brief.name)}"></iframe>
   </div>
   <div class="bar">
-    <a class="btn big edit" style="width:auto" href="/c/{lid}/editor">{_esc(U['console_edit_open'])}</a>
-    <a class="btn big outline" style="width:auto" href="/site/{lid}/" target="_blank"
+    <a class="btn edit" href="/c/{lid}/editor">{_esc(U['console_edit_open'])}</a>
+    <a class="btn outline" href="/site/{lid}/" target="_blank"
        rel="noopener">{_esc(U['console_visit'])}</a>
   </div>
 </div>"""
