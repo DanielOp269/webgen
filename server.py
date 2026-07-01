@@ -136,6 +136,11 @@ class Handler(BaseHTTPRequestHandler):
         # /c/<lead_id>  → the console page (states: pending / ready / error)
         if len(parts) == 2:
             code = 200 if lead else 404
+            # A single generated design needs no "choose" step — land the customer
+            # straight in the console dashboard.
+            if (job and job.status == "done" and not job.chosen
+                    and len(job.variants) == 1):
+                job = JOBS.set_choice(lead_id, job.variants[0].key) or job
             view = (parse_qs(urlsplit(self.path).query).get("view") or ["site"])[0]
             return self._html(code, console.render_page(lead, job, lang, view))
 
