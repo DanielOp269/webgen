@@ -31,6 +31,8 @@ _LAYER = """
     padding: 10px 18px; cursor: pointer; text-decoration: none; }
   #__wg_save { background: #16a34a; color: #fff; }
   #__wg_exit { background: #334155; color: #fff; }
+  #__wg_bar.embed { background: #fff; color: #111827; border-bottom: 1px solid #edeff2; }
+  #__wg_bar.embed .__wg_hint { color: #6b7280; }
   [data-wg-edit]:hover { outline: 2px dashed #3b82f6; outline-offset: 3px;
     cursor: text; border-radius: 2px; }
   [data-wg-edit]:focus { outline: 2px solid #2563eb; outline-offset: 3px; }
@@ -39,10 +41,10 @@ _LAYER = """
     z-index: 2147483000; font: 600 15px sans-serif; opacity: 0;
     transition: opacity .3s; pointer-events: none; box-shadow: 0 6px 20px #0004; }
 </style>
-<div id="__wg_bar">
-  <span>%%HINT%%</span>
+<div id="__wg_bar" class="%%BARMODE%%">
+  <span class="__wg_hint">%%HINT%%</span>
   <span class="__wg_sp"></span>
-  <a id="__wg_exit" href="%%CONSOLE_URL%%">%%EXIT%%</a>
+  %%EXIT_BTN%%
   <button id="__wg_save" type="button">%%SAVE%%</button>
 </div>
 <div id="__wg_toast"></div>
@@ -97,16 +99,25 @@ _LAYER = """
 """
 
 
-def render_editor(page_html: str, lead_id: str, filename: str, lang: str) -> str:
-    """Inject the editing layer into a served page."""
+def render_editor(page_html: str, lead_id: str, filename: str, lang: str,
+                  embed: bool = False) -> str:
+    """Inject the editing layer into a served page.
+
+    embed=True is for showing the editor inside the console's "My website" panel:
+    a lighter toolbar and no "Done" button (there's no separate page to leave).
+    """
     U = i18n.ui(lang)
     layer = _LAYER
+    # Raw HTML fragment (built here, not escaped by the loop below).
+    exit_btn = ("" if embed else
+                f'<a id="__wg_exit" href="/c/{html.escape(lead_id)}">'
+                f'{html.escape(U["console_edit_exit"])}</a>')
+    layer = (layer.replace("%%EXIT_BTN%%", exit_btn)
+                  .replace("%%BARMODE%%", "embed" if embed else ""))
     # Values placed in HTML markup — HTML-escape them.
     for k, v in {
         "%%HINT%%": U["console_edit_hint"],
         "%%SAVE%%": U["console_edit_save"],
-        "%%EXIT%%": U["console_edit_exit"],
-        "%%CONSOLE_URL%%": f"/c/{lead_id}",
     }.items():
         layer = layer.replace(k, html.escape(v, quote=True))
     # Values placed inside JavaScript — JSON-encode so quotes/specials are safe

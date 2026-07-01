@@ -136,6 +136,9 @@ body.app { background: #f7f8fa; color: #111827; }
    border-radius: 999px; }
 .live-dot i { width: 7px; height: 7px; border-radius: 50%; background: #16a34a; }
 .cbody { padding: 30px 32px 64px; max-width: 1000px; }
+.cbody.full { padding: 0; max-width: none; }
+.editcanvas { height: calc(100vh - 64px); background: #fff; }
+.editcanvas iframe { width: 100%; height: 100%; border: 0; display: block; }
 .lead-sub { color: #6b7280; margin-bottom: 24px; max-width: 64ch; font-size: 15px; }
 .actions-row { display: flex; gap: 10px; align-items: center; }
 .btn.edit { background: #16a34a; color: #fff; border: 0; }
@@ -343,7 +346,8 @@ def _console_doc(lang: str, U: dict, body: str) -> str:
 </head><body class="app">{body}</body></html>"""
 
 
-def _console_shell(lead: Lead, active: str, title: str, content: str, lang: str) -> str:
+def _console_shell(lead: Lead, active: str, title: str, content: str, lang: str,
+                   full: bool = False) -> str:
     U = i18n.ui(lang)
     lid = _esc(lead.id)
     head = f"""<header class="chead">
@@ -354,29 +358,18 @@ def _console_shell(lead: Lead, active: str, title: str, content: str, lang: str)
        rel="noopener">{_esc(U['console_visit'])}</a>
   </div>
 </header>"""
+    cbody = f'<div class="cbody{" full" if full else ""}">{content}</div>'
     body = (f'<div class="console">{_sidebar(lead, active, U)}'
-            f'<main class="content">{head}<div class="cbody">{content}</div>'
-            f'</main></div>')
+            f'<main class="content">{head}{cbody}</main></div>')
     return _console_doc(lang, U, body)
 
 
 def _sec_site(lead: Lead, U: dict) -> str:
+    # The live site, editable in place — click any text to change it, no extra step.
     lid = _esc(lead.id)
-    return f"""<p class="lead-sub">{_esc(U['sec_site_sub'])}</p>
-<div class="siteview">
-  <div class="browserbar">
-    <div class="dots"><span></span><span></span><span></span></div>
-    <div class="addr">{_esc(U['console_preview_label'])}</div>
-  </div>
-  <div class="frame">
-    <iframe src="/site/{lid}/" scrolling="no" title="{_esc(lead.brief.name)}"></iframe>
-  </div>
-  <div class="bar">
-    <a class="btn edit" href="/c/{lid}/editor">{_esc(U['console_edit_open'])}</a>
-    <a class="btn outline" href="/site/{lid}/" target="_blank"
-       rel="noopener">{_esc(U['console_visit'])}</a>
-  </div>
-</div>"""
+    return (f'<div class="editcanvas">'
+            f'<iframe src="/c/{lid}/editor?embed=1" title="{_esc(lead.brief.name)}">'
+            f'</iframe></div>')
 
 
 def _sec_changes(lead: Lead, U: dict) -> str:
@@ -464,6 +457,7 @@ def render_page(lead: Lead | None, job: Job | None, lang: str,
     if cv is not None:
         active = view if view in _VIEWS else "site"
         others = [v for v in job.variants if v.key != chosen]
+        full = False
         if active == "changes":
             title, content = U["sec_changes_h"], _sec_changes(lead, U)
         elif active == "design":
@@ -473,8 +467,8 @@ def render_page(lead: Lead | None, job: Job | None, lang: str,
         elif active == "golive":
             title, content = U["sec_golive_h"], _sec_golive(U)
         else:
-            title, content = U["sec_site_h"], _sec_site(lead, U)
-        return _console_shell(lead, active, title, content, lang)
+            title, content, full = U["sec_site_h"], _sec_site(lead, U), True
+        return _console_shell(lead, active, title, content, lang, full=full)
 
     # Not chosen yet → the options grid to pick from.
     cards = "".join(

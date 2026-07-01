@@ -139,8 +139,9 @@ class Handler(BaseHTTPRequestHandler):
             v = job.variant(job.chosen) if job and job.chosen else None
             if v is None or "index.html" not in v.files:
                 return self._json(404, {"error": "not found"})
+            embed = parse_qs(urlsplit(self.path).query).get("embed") == ["1"]
             return self._html(200, siteedit.render_editor(
-                v.files["index.html"], lead_id, "index.html", lang))
+                v.files["index.html"], lead_id, "index.html", lang, embed))
 
         # everything below needs a finished variant to serve
         variant = None
