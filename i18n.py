@@ -143,6 +143,8 @@ UI = {
         "nav_golive": "Getting live",
         "nav_section": "Website console",
         "console_preview_label": "your website — live preview",
+        "view_desktop": "Desktop",
+        "view_mobile": "Phone",
         "sec_site_h": "Your website",
         "sec_site_sub": "This is your live website. Edit it yourself, or view it "
                         "as your visitors see it.",
@@ -306,6 +308,8 @@ UI = {
         "nav_golive": "Live gehen",
         "nav_section": "Website-Konsole",
         "console_preview_label": "Ihre Website — Live-Vorschau",
+        "view_desktop": "Desktop",
+        "view_mobile": "Handy",
         "sec_site_h": "Ihre Website",
         "sec_site_sub": "Das ist Ihre Live-Website. Bearbeiten Sie sie selbst oder "
                         "sehen Sie sie so, wie Ihre Besucher sie sehen.",

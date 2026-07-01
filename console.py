@@ -138,8 +138,17 @@ body.app { background: #f7f8fa; color: #111827; }
 .live-dot i { width: 7px; height: 7px; border-radius: 50%; background: #16a34a; }
 .cbody { padding: 30px 32px 64px; max-width: 1000px; }
 .cbody.full { padding: 0; max-width: none; }
-.editcanvas { height: calc(100vh - 64px); background: #fff; }
-.editcanvas iframe { width: 100%; height: 100%; border: 0; display: block; }
+.editcanvas { height: calc(100vh - 64px); background: #f1f3f5; }
+.editcanvas iframe { width: 100%; height: 100%; border: 0; display: block;
+   background: #fff; }
+.editcanvas.mobile { display: flex; justify-content: center; }
+.editcanvas.mobile iframe { width: 400px; max-width: 100%;
+   box-shadow: 0 0 0 1px #e6e9ee, 0 8px 30px #0f172a1a; }
+.device-toggle { display: inline-flex; background: #f1f3f5; border-radius: 9px;
+   padding: 3px; gap: 2px; }
+.device-toggle button { border: 0; background: transparent; padding: 6px 11px;
+   border-radius: 7px; cursor: pointer; font-size: 15px; line-height: 1; }
+.device-toggle button.active { background: #fff; box-shadow: 0 1px 2px #0f172a1a; }
 .lead-sub { color: #6b7280; margin-bottom: 24px; max-width: 64ch; font-size: 15px; }
 .actions-row { display: flex; gap: 10px; align-items: center; }
 .btn.edit { background: #16a34a; color: #fff; border: 0; }
@@ -199,10 +208,23 @@ body.app { background: #f7f8fa; color: #111827; }
 .soon { background: #fff; border: 1px dashed #d7dbe0; border-radius: 12px;
    padding: 44px 32px; color: #6b7280; text-align: center; max-width: 56ch;
    box-shadow: 0 1px 2px #0f172a06; }
-@media (max-width: 720px) {
+/* Narrow screens: sidebar becomes a top bar with a horizontal nav. */
+@media (max-width: 860px) {
   .console { grid-template-columns: 1fr; }
-  .side { position: static; height: auto; }
-  .side nav { flex-direction: row; flex-wrap: wrap; }
+  .side { position: static; height: auto; border-right: 0;
+     border-bottom: 1px solid #edeff2; padding: 12px 14px; }
+  .side .spacer, .side .foot { display: none; }
+  .side nav { flex-direction: row; overflow-x: auto; gap: 4px; margin-top: 12px;
+     -webkit-overflow-scrolling: touch; }
+  .nav-item { white-space: nowrap; padding: 9px 13px; }
+  .chead { height: auto; padding: 12px 18px; flex-wrap: wrap; gap: 10px; }
+  .chead h1 { flex: 1 0 100%; }
+  .cbody { padding: 22px 18px 48px; }
+  .cbody.full .editcanvas { height: 72vh; }
+}
+@media (max-width: 420px) {
+  .nav-item span { display: none; }        /* icon-only nav on phones */
+  .nav-item { padding: 10px; }
 }
 .state { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px;
          padding: 48px 40px; text-align: center; margin-top: 32px; }
@@ -353,12 +375,13 @@ def _console_doc(lang: str, U: dict, body: str) -> str:
 
 
 def _console_shell(lead: Lead, active: str, title: str, content: str, lang: str,
-                   full: bool = False) -> str:
+                   full: bool = False, head_extra: str = "") -> str:
     U = i18n.ui(lang)
     lid = _esc(lead.id)
     head = f"""<header class="chead">
   <h1>{_esc(title)}</h1>
   <div class="actions-row">
+    {head_extra}
     <span class="live-dot"><i></i>{_esc(U['console_live_note'])}</span>
     <a class="btn outline" href="/site/{lid}/" target="_blank"
        rel="noopener">{_esc(U['console_visit'])}</a>
@@ -370,12 +393,28 @@ def _console_shell(lead: Lead, active: str, title: str, content: str, lang: str,
     return _console_doc(lang, U, body)
 
 
+def _device_toggle(U: dict) -> str:
+    return (f'<div class="device-toggle" role="group">'
+            f'<button type="button" data-d="desktop" class="active" '
+            f'title="{_esc(U["view_desktop"])}">🖥</button>'
+            f'<button type="button" data-d="mobile" '
+            f'title="{_esc(U["view_mobile"])}">📱</button></div>')
+
+
 def _sec_site(lead: Lead, U: dict) -> str:
     # The live site, editable in place — click any text to change it, no extra step.
+    # The device toggle (in the header) flips the canvas between desktop/phone width.
     lid = _esc(lead.id)
-    return (f'<div class="editcanvas">'
+    return (f'<div class="editcanvas" id="wg-canvas">'
             f'<iframe src="/c/{lid}/editor?embed=1" title="{_esc(lead.brief.name)}">'
-            f'</iframe></div>')
+            f'</iframe></div>'
+            f'<script>(function(){{'
+            f'var b=document.querySelectorAll(".device-toggle button"),'
+            f'c=document.getElementById("wg-canvas");'
+            f'b.forEach(function(x){{x.addEventListener("click",function(){{'
+            f'b.forEach(function(y){{y.classList.remove("active");}});'
+            f'x.classList.add("active");'
+            f'c.classList.toggle("mobile",x.dataset.d==="mobile");}});}});}})();</script>')
 
 
 _CHANGES_JS = """
@@ -514,7 +553,9 @@ def render_page(lead: Lead | None, job: Job | None, lang: str,
             title, content = U["sec_golive_h"], _sec_golive(U)
         else:
             title, content, full = U["sec_site_h"], _sec_site(lead, U), True
-        return _console_shell(lead, active, title, content, lang, full=full)
+        extra = _device_toggle(U) if active == "site" else ""
+        return _console_shell(lead, active, title, content, lang, full=full,
+                              head_extra=extra)
 
     # Not chosen yet → the options grid to pick from.
     cards = "".join(
