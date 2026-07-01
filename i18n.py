@@ -45,8 +45,8 @@ UI = {
     "en": {
         # homepage / landing
         "hero_title": "Professional websites, built from your brief",
-        "app_sub": "Tell us about your project. We design your website and get "
-                   "back to you within one business day.",
+        "app_sub": "Tell us about your project. We design your website and "
+                   "get back to you soon.",
         "nav_start": "Get started",
         "home_cta": "Start your brief",
         "see_how": "See how it works ›",
@@ -59,7 +59,7 @@ UI = {
         "how_2_d": "Our team designs it for you. You don't do anything technical.",
         "how_3_t": "You look it over",
         "how_3_d": "We send it to you to review, then make it live.",
-        "reassure": "Free and no obligation. No technical skills needed — we reply within one business day.",
+        "reassure": "Free and no obligation. No technical skills needed — we'll get back to you soon.",
         # stats / references — placeholder numbers, swap for real ones later
         "stat_1_n": "2,400+", "stat_1_l": "Websites delivered",
         "stat_2_n": "98%",    "stat_2_l": "Client satisfaction",
@@ -73,7 +73,7 @@ UI = {
         "show_4_t": "Trades & services",  "show_4_d": "Straightforward sites that bring the calls in.",
         # closing cta
         "cta_title": "Your website starts with a brief.",
-        "cta_sub": "Answer a few questions. We'll handle the rest and reply within one business day.",
+        "cta_sub": "Answer a few questions. We'll handle the rest and get back to you soon.",
         # stepper
         "step_brief": "Brief",
         "step_contact": "Contact",
@@ -89,8 +89,8 @@ UI = {
         "err_generic": "Something went wrong. Please try again.",
         # contact step
         "contact_title": "How can we reach you?",
-        "contact_sub": "We'll use this to send your website and follow up. "
-                       "We reply within one business day.",
+        "contact_sub": "We'll use this to reach you about your website. "
+                       "We'll be in touch soon.",
         "contact_name": "Your name",
         "contact_name_ph": "Jane Doe",
         "contact_email": "Email",
@@ -102,7 +102,7 @@ UI = {
         "submit_btn": "Send my request →",
         # thank-you step
         "thanks_title": "Thank you — we've got your brief",
-        "thanks_sub": "We'll review your project and get back to you within one business day.",
+        "thanks_sub": "We've got your brief — we'll get back to you soon.",
         "thanks_back": "Start another brief",
         # chrome
         "lang_label": "Language",
@@ -117,7 +117,7 @@ UI = {
         # homepage / landing
         "hero_title": "Professionelle Websites aus Ihrem Briefing",
         "app_sub": "Erzählen Sie uns von Ihrem Projekt. Wir gestalten Ihre Website "
-                   "und melden uns innerhalb eines Werktags.",
+                   "und melden uns bald.",
         "nav_start": "Loslegen",
         "home_cta": "Briefing starten",
         "see_how": "So funktioniert's ›",
@@ -130,7 +130,7 @@ UI = {
         "how_2_d": "Unser Team gestaltet sie für Sie. Die Technik übernehmen wir.",
         "how_3_t": "Sie schauen sie sich an",
         "how_3_d": "Wir senden sie Ihnen zur Ansicht und schalten sie dann live.",
-        "reassure": "Kostenlos und unverbindlich. Keine technischen Kenntnisse nötig — Antwort innerhalb eines Werktags.",
+        "reassure": "Kostenlos und unverbindlich. Keine technischen Kenntnisse nötig — wir melden uns bald.",
         # Statistiken / Referenzen — Platzhalter, später ersetzen
         "stat_1_n": "2.400+", "stat_1_l": "Websites geliefert",
         "stat_2_n": "98 %",   "stat_2_l": "Kundenzufriedenheit",
@@ -144,7 +144,7 @@ UI = {
         "show_4_t": "Handwerk & Dienste",  "show_4_d": "Klare Seiten, die für Anfragen sorgen.",
         # Abschluss-CTA
         "cta_title": "Ihre Website beginnt mit einem Briefing.",
-        "cta_sub": "Beantworten Sie ein paar Fragen. Den Rest übernehmen wir — Antwort innerhalb eines Werktags.",
+        "cta_sub": "Beantworten Sie ein paar Fragen. Den Rest übernehmen wir — wir melden uns bald.",
         # stepper
         "step_brief": "Briefing",
         "step_contact": "Kontakt",
@@ -160,8 +160,8 @@ UI = {
         "err_generic": "Etwas ist schiefgelaufen. Bitte erneut versuchen.",
         # contact step
         "contact_title": "Wie erreichen wir Sie?",
-        "contact_sub": "Damit senden wir Ihnen Ihre Website und melden uns. "
-                       "Wir antworten innerhalb eines Werktags.",
+        "contact_sub": "Damit erreichen wir Sie zu Ihrer Website. "
+                       "Wir melden uns bald.",
         "contact_name": "Ihr Name",
         "contact_name_ph": "Max Mustermann",
         "contact_email": "E-Mail",
@@ -173,7 +173,7 @@ UI = {
         "submit_btn": "Anfrage senden →",
         # thank-you step
         "thanks_title": "Vielen Dank — wir haben Ihr Briefing",
-        "thanks_sub": "Wir sehen uns Ihr Projekt an und melden uns innerhalb eines Werktags.",
+        "thanks_sub": "Wir haben Ihr Briefing — wir melden uns bald.",
         "thanks_back": "Neues Briefing starten",
         # chrome
         "lang_label": "Sprache",
@@ -193,9 +193,13 @@ Q = {
     "en": {
         "name": ("What's your business called?", "e.g. Nordlicht Café"),
         "business_type": ("What kind of business are you?", ""),
-        "area": ("Where are your customers?", ""),
+        "offerings": ("What do you offer? (your main products or services)",
+                      "e.g. Fresh coffee, homemade cakes, breakfast, small catering"),
+        "audience": ("Who are your customers? (pick any)", ""),
+        "strengths": ("What makes you special? (pick any)", ""),
+        "area": ("Where are your customers based?", ""),
         "years": ("How long have you been in business?", ""),
-        "goal": ("What should your website mainly do?", ""),
+        "goal": ("What should your website do for you? (pick any)", ""),
         "pages": ("Which pages would you like? (pick any)", ""),
         "features": ("Any special features? (pick any, or skip)", ""),
         "feel": ("How should your website feel?", ""),
@@ -207,9 +211,13 @@ Q = {
     "de": {
         "name": ("Wie heißt Ihr Unternehmen?", "z. B. Nordlicht Café"),
         "business_type": ("Was für ein Unternehmen sind Sie?", ""),
-        "area": ("Wo sind Ihre Kunden?", ""),
+        "offerings": ("Was bieten Sie an? (Ihre wichtigsten Produkte oder Leistungen)",
+                      "z. B. Frischer Kaffee, hausgemachte Kuchen, Frühstück, kleines Catering"),
+        "audience": ("Wer sind Ihre Kunden? (beliebig wählen)", ""),
+        "strengths": ("Was macht Sie besonders? (beliebig wählen)", ""),
+        "area": ("Wo sind Ihre Kunden zu Hause?", ""),
         "years": ("Wie lange gibt es Ihr Unternehmen schon?", ""),
-        "goal": ("Was soll Ihre Website vor allem tun?", ""),
+        "goal": ("Was soll Ihre Website für Sie tun? (beliebig wählen)", ""),
         "pages": ("Welche Seiten möchten Sie? (beliebig wählen)", ""),
         "features": ("Besondere Funktionen? (beliebig wählen oder überspringen)", ""),
         "feel": ("Wie soll sich Ihre Website anfühlen?", ""),
@@ -243,7 +251,14 @@ OPTIONS = {
                   "ten": "More than 10 years", "twentyfive": "More than 25 years"},
         "goal": {"calls": "Bring in phone calls", "bookings": "Take bookings or appointments",
                  "show": "Show what I offer", "sell": "Sell products online",
-                 "visit": "Get people to visit me"},
+                 "visit": "Get people to visit me", "inform": "Share information & build trust"},
+        "audience": {"families": "Families", "young": "Young adults", "older": "Older adults",
+                     "locals": "Local residents", "tourists": "Tourists & visitors",
+                     "business": "Other businesses", "everyone": "Everyone"},
+        "strengths": {"price": "Great value / fair prices", "quality": "Top quality",
+                      "service": "Friendly, personal service", "experience": "Experience & expertise",
+                      "reliability": "Reliable & on time", "local": "Local & trusted",
+                      "choice": "Big choice / selection"},
         "pages": {"home": "Home", "about": "About us", "services": "Services / Menu",
                   "gallery": "Photo gallery", "pricing": "Prices", "reviews": "Reviews",
                   "contact": "Contact"},
@@ -269,7 +284,14 @@ OPTIONS = {
                   "ten": "Über 10 Jahre", "twentyfive": "Über 25 Jahre"},
         "goal": {"calls": "Anrufe gewinnen", "bookings": "Termine/Buchungen erhalten",
                  "show": "Zeigen, was ich anbiete", "sell": "Produkte online verkaufen",
-                 "visit": "Besucher ins Geschäft holen"},
+                 "visit": "Besucher ins Geschäft holen", "inform": "Informieren & Vertrauen aufbauen"},
+        "audience": {"families": "Familien", "young": "Junge Erwachsene", "older": "Ältere Menschen",
+                     "locals": "Menschen aus der Umgebung", "tourists": "Touristen & Besucher",
+                     "business": "Andere Unternehmen", "everyone": "Alle"},
+        "strengths": {"price": "Gutes Preis-Leistungs-Verhältnis", "quality": "Top-Qualität",
+                      "service": "Freundlicher, persönlicher Service", "experience": "Erfahrung & Kompetenz",
+                      "reliability": "Zuverlässig & pünktlich", "local": "Lokal & vertrauenswürdig",
+                      "choice": "Große Auswahl"},
         "pages": {"home": "Startseite", "about": "Über uns", "services": "Leistungen / Speisekarte",
                   "gallery": "Fotogalerie", "pricing": "Preise", "reviews": "Bewertungen",
                   "contact": "Kontakt"},

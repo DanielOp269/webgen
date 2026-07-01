@@ -11,9 +11,13 @@ Questions are organized into three groups the wizard presents as parts:
   website  — what the website should do (features)
   look     — the design
 
-Almost every question is multiple choice (tap to answer) — kept deliberately
-easy for non-technical customers. Only the business name and the optional
-example link require typing.
+Almost every question is tap-to-answer (single- or multi-choice) — kept
+deliberately easy for non-technical customers. Only the business name and two
+optional free-text fields (what you offer, an example link) involve typing.
+
+The answers are the raw material for the (separate) website-generation prompt,
+so the set leans toward what actually specifies a site: what the business does,
+who it serves, what makes it special, what the site must achieve, and the look.
 """
 
 from __future__ import annotations
@@ -28,13 +32,21 @@ QUESTIONS: list[dict[str, Any]] = [
     {"id": "name", "type": "text", "required": True, "group": "you"},
     {"id": "business_type", "type": "select", "required": True, "group": "you",
      "options": ["food", "shop", "trade", "health", "beauty", "professional", "other"]},
+    {"id": "offerings", "type": "textarea", "required": False, "group": "you"},
+    {"id": "audience", "type": "multiselect", "required": False, "group": "you",
+     "options": ["families", "young", "older", "locals", "tourists", "business", "everyone"],
+     "default": []},
+    {"id": "strengths", "type": "multiselect", "required": False, "group": "you",
+     "options": ["price", "quality", "service", "experience", "reliability", "local", "choice"],
+     "default": []},
     {"id": "area", "type": "select", "required": True, "group": "you",
      "options": ["local", "region", "country", "online"]},
     {"id": "years", "type": "select", "required": False, "group": "you",
      "options": ["new", "few", "ten", "twentyfive"]},
     # 2) Your website
-    {"id": "goal", "type": "select", "required": True, "group": "website",
-     "options": ["calls", "bookings", "show", "sell", "visit"]},
+    {"id": "goal", "type": "multiselect", "required": True, "group": "website",
+     "options": ["calls", "bookings", "show", "sell", "visit", "inform"],
+     "default": []},
     {"id": "pages", "type": "multiselect", "required": True, "group": "website",
      "options": ["home", "about", "services", "gallery", "pricing", "reviews", "contact"],
      "default": ["home", "about", "services", "contact"]},
@@ -62,11 +74,14 @@ class Brief:
     name: str
     business_type: str
     area: str
-    goal: str
+    goal: list[str]             # value keys: "calls", "bookings", …
     pages: list[str]            # value keys: "home", "about", …
     feel: str
     colors: str
     lang: str = "en"
+    offerings: str = ""
+    audience: list[str] = field(default_factory=list)
+    strengths: list[str] = field(default_factory=list)
     years: str = ""
     features: list[str] = field(default_factory=list)
     logo: str = ""
@@ -92,19 +107,21 @@ class Brief:
 
         pages = as_list(answers.get("pages"), _BY_ID["pages"]["default"])
         pages = ["home"] + [p for p in pages if p != "home"]      # home always first
-        features = as_list(answers.get("features"), [])
 
         return cls(
             name=answers["name"].strip(),
             business_type=answers.get("business_type", ""),
             area=answers.get("area", ""),
-            goal=answers.get("goal", ""),
+            goal=as_list(answers.get("goal"), []),
             pages=pages,
             feel=answers.get("feel", ""),
             colors=answers.get("colors") or "designer",
             lang=lang,
+            offerings=(answers.get("offerings") or "").strip(),
+            audience=as_list(answers.get("audience"), []),
+            strengths=as_list(answers.get("strengths"), []),
             years=answers.get("years", ""),
-            features=features,
+            features=as_list(answers.get("features"), []),
             logo=answers.get("logo", ""),
             example=(answers.get("example") or "").strip(),
         )
