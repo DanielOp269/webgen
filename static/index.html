@@ -175,15 +175,32 @@
   .card > .sub { color:var(--body); margin-top:8px; font-size:17px; }
 
   /* brief wizard — one question at a time */
-  .wiz-top { display:flex; align-items:center; gap:14px; margin:22px 0 6px; }
+  .wiz-section { color:var(--accent); font-size:13px; font-weight:600; letter-spacing:.06em;
+                 text-transform:uppercase; }
+  .wiz-top { display:flex; align-items:center; gap:14px; margin:10px 0 6px; }
   .wiz-progress { flex:1; height:6px; background:var(--line); border-radius:999px; overflow:hidden; }
   .wiz-progress span { display:block; height:100%; width:0; background:var(--accent);
                        border-radius:999px; transition:width .35s cubic-bezier(.4,0,.2,1); }
   .wiz-count { font-size:13px; color:var(--muted); white-space:nowrap; }
   .qslide { display:none; }
   .qslide.on { display:block; animation:qfade .35s ease; }
-  #brief-form .qslide label { font-size:20px; font-weight:600; margin:18px 0 14px; }
+  #brief-form .qslide label { font-size:20px; font-weight:600; margin:18px 0 16px; }
   @keyframes qfade { from{opacity:0; transform:translateY(8px)} to{opacity:1; transform:none} }
+
+  /* big tappable choice cards (single = round tick, multi = square tick) */
+  .opts { display:flex; flex-direction:column; gap:12px; margin-top:6px; }
+  .opt { display:flex; align-items:center; gap:14px; width:100%; text-align:left;
+         padding:16px 18px; border:1.5px solid var(--line); border-radius:14px; background:#fff;
+         font:inherit; font-size:17px; color:var(--ink); cursor:pointer;
+         transition:border-color .15s, background .15s; }
+  .opt:hover { border-color:var(--muted); }
+  .opt.on { border-color:var(--accent); background:rgba(0,113,227,.06); }
+  .opt .tick { flex:0 0 auto; width:24px; height:24px; border:2px solid var(--line);
+               border-radius:50%; position:relative; transition:all .15s; }
+  .opt.multi .tick { border-radius:7px; }
+  .opt.on .tick { border-color:var(--accent); background:var(--accent); }
+  .opt.on .tick::after { content:""; position:absolute; left:8px; top:4px; width:5px; height:10px;
+        border:solid #fff; border-width:0 2px 2px 0; transform:rotate(45deg); }
 
   label { display:block; font-weight:500; color:var(--ink); margin:26px 0 8px; font-size:15px; }
   .hint { font-weight:400; color:var(--muted); font-size:13px; }
@@ -305,9 +322,9 @@
 
 <!-- ===================== FUNNEL ===================== -->
 <main class="funnel">
-  <section id="form-step" class="step">
+  <section id="brief-step" class="step">
     <div class="card">
-      <h2 id="form-title"></h2>
+      <div class="wiz-section" id="wiz-section"></div>
       <div class="wiz-top">
         <div class="wiz-progress"><span id="wiz-bar"></span></div>
         <div class="wiz-count" id="wiz-count"></div>
@@ -366,7 +383,9 @@
 <script>
 const $ = (s) => document.querySelector(s);
 let SCHEMA = [], UI = {}, LANG = 'en';
-const multi = {};
+const multi = {};      // multiselect state: qid -> Set(values)
+const single = {};     // select state: qid -> value
+let groups = [];       // ordered unique question groups
 let curStep = 'home';
 let lenis = null, scrollReady = false;
 
@@ -415,7 +434,6 @@ function applyUI() {
   // stepper
   set('step-brief', UI.step_brief); set('step-contact', UI.step_contact); set('step-done', UI.step_done);
   // brief (one-question-at-a-time wizard)
-  set('form-title', UI.form_title);
   set('brief-back', UI.back_btn); set('brief-next', UI.continue_btn);
   // contact
   set('contact-title', UI.contact_title); set('contact-sub', UI.contact_sub);
@@ -452,6 +470,8 @@ function buildForm() {
   const form = $('#brief-form');
   form.innerHTML = '';
   for (const k of Object.keys(multi)) delete multi[k];
+  for (const k of Object.keys(single)) delete single[k];
+  groups = [...new Set(SCHEMA.map(q => q.group))];
   for (const q of SCHEMA) {
     const wrap = document.createElement('div');
     wrap.className = 'qslide';
@@ -461,24 +481,31 @@ function buildForm() {
       wrap.innerHTML = lbl + `<input type="text" id="f_${q.id}" placeholder="${q.placeholder||''}" value="${q.default||''}">`;
     } else if (q.type === 'textarea') {
       wrap.innerHTML = lbl + `<textarea id="f_${q.id}" placeholder="${q.placeholder||''}">${q.default||''}</textarea>`;
-    } else if (q.type === 'color') {
-      wrap.innerHTML = lbl + `<input type="color" id="f_${q.id}" value="${q.default||'#0071e3'}">`;
     } else if (q.type === 'select') {
-      const opts = q.options.map(o => `<option value="${o.value}" ${o.value===q.default?'selected':''}>${o.label}</option>`).join('');
-      wrap.innerHTML = lbl + `<select id="f_${q.id}">${opts}</select>`;
+      single[q.id] = q.default || '';
+      const opts = q.options.map(o =>
+        `<button type="button" class="opt ${o.value===single[q.id]?'on':''}" data-q="${q.id}" data-v="${o.value}"><span class="tick"></span><span>${o.label}</span></button>`).join('');
+      wrap.innerHTML = lbl + `<div class="opts">${opts}</div>`;
     } else if (q.type === 'multiselect') {
       const def = new Set(q.default || []);
       multi[q.id] = def;
-      const chips = q.options.map(o =>
-        `<span class="chip ${def.has(o.value)?'on':''}" data-q="${q.id}" data-o="${o.value}">${o.label}</span>`).join('');
-      wrap.innerHTML = lbl + `<div class="chips">${chips}</div>`;
+      const opts = q.options.map(o =>
+        `<button type="button" class="opt multi ${def.has(o.value)?'on':''}" data-q="${q.id}" data-o="${o.value}"><span class="tick"></span><span>${o.label}</span></button>`).join('');
+      wrap.innerHTML = lbl + `<div class="opts">${opts}</div>`;
     }
     form.appendChild(wrap);
   }
-  form.querySelectorAll('.chip').forEach(c => c.onclick = () => {
-    const set = multi[c.dataset.q];
-    if (set.has(c.dataset.o)) set.delete(c.dataset.o); else set.add(c.dataset.o);
-    c.classList.toggle('on');
+  // single-choice cards
+  form.querySelectorAll('.opt[data-v]').forEach(b => b.onclick = () => {
+    single[b.dataset.q] = b.dataset.v;
+    b.parentElement.querySelectorAll('.opt').forEach(x => x.classList.remove('on'));
+    b.classList.add('on');
+  });
+  // multi-choice cards
+  form.querySelectorAll('.opt[data-o]').forEach(b => b.onclick = () => {
+    const set = multi[b.dataset.q];
+    if (set.has(b.dataset.o)) set.delete(b.dataset.o); else set.add(b.dataset.o);
+    b.classList.toggle('on');
   });
   showQuestion(0);
 }
@@ -487,11 +514,8 @@ function collect() {
   const a = { lang: LANG };
   for (const q of SCHEMA) {
     if (q.type === 'multiselect') a[q.id] = [...multi[q.id]];
-    else {
-      const el = $('#f_' + q.id);
-      a[q.id] = el ? el.value : '';
-      if (q.type === 'color' && a[q.id] === '#0071e3') a[q.id] = '';
-    }
+    else if (q.type === 'select') a[q.id] = single[q.id] || '';
+    else { const el = $('#f_' + q.id); a[q.id] = el ? el.value : ''; }
   }
   return a;
 }
@@ -508,9 +532,13 @@ function showQuestion(i) {
   $('#wiz-bar').style.width = ((qIndex + 1) / total * 100) + '%';
   $('#wiz-count').textContent = (UI.wiz_count || 'Question {n} of {total}')
       .replace('{n}', qIndex + 1).replace('{total}', total);
+  const q = SCHEMA[qIndex];
+  const part = groups.indexOf(q.group) + 1;
+  $('#wiz-section').textContent = (UI.part_label || 'Part {n} of {total}')
+      .replace('{n}', part).replace('{total}', groups.length) + ' · ' + (q.group_label || '');
   $('#form-err').textContent = '';
-  const inp = slides[qIndex].querySelector('input,select,textarea');
-  if (inp && inp.type !== 'color') setTimeout(() => inp.focus(), 60);
+  const inp = slides[qIndex].querySelector('input,textarea');
+  if (inp) setTimeout(() => inp.focus(), 60);
 }
 
 function validateCurrent() {
@@ -518,6 +546,7 @@ function validateCurrent() {
   if (!q || !q.required) return true;
   let ok;
   if (q.type === 'multiselect') ok = multi[q.id] && multi[q.id].size > 0;
+  else if (q.type === 'select') ok = !!single[q.id];
   else { const el = $('#f_' + q.id); ok = el && el.value.trim(); }
   if (!ok) {
     $('#form-err').textContent = (LANG === 'de' ? 'Bitte ausfüllen: ' : 'Please fill in: ') + q.label;

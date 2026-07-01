@@ -1,10 +1,19 @@
 """The questionnaire structure and the Brief it produces.
 
-`QUESTIONS` is structural only — ids, types, and stable *value keys* for choice
-options. All human-readable text (labels, placeholders, option labels) lives in
-`i18n.py`, keyed by these ids/values. The frontend renders a localized form via
-`i18n.localized_questions`; answers come back as value keys, so backend logic is
-language-independent.
+`QUESTIONS` is structural only — ids, types, groups, and stable *value keys* for
+choice options. All human-readable text (labels, option labels, group names)
+lives in `i18n.py`, keyed by these ids/values. The frontend renders a localized
+form via `i18n.localized_questions`; answers come back as value keys, so backend
+logic is language-independent.
+
+Questions are organized into three groups the wizard presents as parts:
+  you      — about the person / business (asked first)
+  website  — what the website should do (features)
+  look     — the design
+
+Almost every question is multiple choice (tap to answer) — kept deliberately
+easy for non-technical customers. Only the business name and the optional
+example link require typing.
 """
 
 from __future__ import annotations
@@ -14,29 +23,33 @@ from typing import Any
 
 from . import i18n
 
-# Structural schema. `options` are stable value keys; labels are in i18n.OPTIONS.
 QUESTIONS: list[dict[str, Any]] = [
-    {"id": "name", "type": "text", "required": True},
-    {"id": "tagline", "type": "text", "required": False},
-    {"id": "industry", "type": "textarea", "required": True},
-    {
-        "id": "pages", "type": "multiselect", "required": True,
-        "options": ["home", "about", "services", "portfolio", "pricing", "contact"],
-        "default": ["home", "about", "services", "contact"],
-    },
-    {
-        "id": "style", "type": "select", "required": True,
-        "options": ["modern", "bold", "elegant", "surprise"],
-        "default": "surprise",
-    },
-    {
-        "id": "tone", "type": "select", "required": True,
-        "options": ["friendly", "professional", "luxury", "playful"],
-        "default": "friendly",
-    },
-    {"id": "color", "type": "color", "required": False, "default": ""},
-    {"id": "cta", "type": "text", "required": False},
-    {"id": "services", "type": "textarea", "required": False},
+    # 1) About you
+    {"id": "name", "type": "text", "required": True, "group": "you"},
+    {"id": "business_type", "type": "select", "required": True, "group": "you",
+     "options": ["food", "shop", "trade", "health", "beauty", "professional", "other"]},
+    {"id": "area", "type": "select", "required": True, "group": "you",
+     "options": ["local", "region", "country", "online"]},
+    {"id": "years", "type": "select", "required": False, "group": "you",
+     "options": ["new", "few", "ten", "twentyfive"]},
+    # 2) Your website
+    {"id": "goal", "type": "select", "required": True, "group": "website",
+     "options": ["calls", "bookings", "show", "sell", "visit"]},
+    {"id": "pages", "type": "multiselect", "required": True, "group": "website",
+     "options": ["home", "about", "services", "gallery", "pricing", "reviews", "contact"],
+     "default": ["home", "about", "services", "contact"]},
+    {"id": "features", "type": "multiselect", "required": False, "group": "website",
+     "options": ["booking", "contactform", "map", "gallery", "reviews", "shop", "newsletter"],
+     "default": []},
+    # 3) The look
+    {"id": "feel", "type": "select", "required": True, "group": "look",
+     "options": ["warm", "professional", "modern", "classic"]},
+    {"id": "colors", "type": "select", "required": True, "group": "look",
+     "options": ["blue", "green", "warm", "elegant", "neutral", "designer"],
+     "default": "designer"},
+    {"id": "logo", "type": "select", "required": False, "group": "look",
+     "options": ["have", "need", "unsure"]},
+    {"id": "example", "type": "text", "required": False, "group": "look"},
 ]
 
 _BY_ID = {q["id"]: q for q in QUESTIONS}
@@ -47,15 +60,17 @@ class Brief:
     """Normalized, validated answers (all choices as stable value keys)."""
 
     name: str
-    industry: str
+    business_type: str
+    area: str
+    goal: str
     pages: list[str]            # value keys: "home", "about", …
-    style: str                  # "modern" | "bold" | "elegant" | "surprise"
-    tone: str                   # "friendly" | "professional" | "luxury" | "playful"
+    feel: str
+    colors: str
     lang: str = "en"
-    tagline: str = ""
-    color: str = ""
-    cta: str = ""
-    services: list[str] = field(default_factory=list)
+    years: str = ""
+    features: list[str] = field(default_factory=list)
+    logo: str = ""
+    example: str = ""
 
     @classmethod
     def from_answers(cls, answers: dict[str, Any]) -> "Brief":
@@ -67,30 +82,29 @@ class Brief:
             if q.get("required") and not answers.get(q["id"]):
                 errors.append(i18n.question_label(q["id"], lang))
         if errors:
-            joiner = ", "
             prefix = "Bitte ausfüllen: " if lang == "de" else "Please fill in: "
-            raise ValueError(prefix + joiner.join(errors))
+            raise ValueError(prefix + ", ".join(errors))
 
-        pages = answers.get("pages") or _BY_ID["pages"]["default"]
-        if isinstance(pages, str):
-            pages = [pages]
-        # Home is always present and always first.
-        pages = ["home"] + [p for p in pages if p != "home"]
+        def as_list(v, default):
+            if not v:
+                return list(default)
+            return [v] if isinstance(v, str) else list(v)
 
-        services_raw = (answers.get("services") or "").strip()
-        services = [s.strip() for s in services_raw.splitlines() if s.strip()]
-
-        cta = (answers.get("cta") or "").strip() or i18n.site(lang)["default_cta"]
+        pages = as_list(answers.get("pages"), _BY_ID["pages"]["default"])
+        pages = ["home"] + [p for p in pages if p != "home"]      # home always first
+        features = as_list(answers.get("features"), [])
 
         return cls(
             name=answers["name"].strip(),
-            industry=answers["industry"].strip(),
+            business_type=answers.get("business_type", ""),
+            area=answers.get("area", ""),
+            goal=answers.get("goal", ""),
             pages=pages,
-            style=answers.get("style") or _BY_ID["style"]["default"],
-            tone=answers.get("tone") or _BY_ID["tone"]["default"],
+            feel=answers.get("feel", ""),
+            colors=answers.get("colors") or "designer",
             lang=lang,
-            tagline=(answers.get("tagline") or "").strip(),
-            color=(answers.get("color") or "").strip(),
-            cta=cta,
-            services=services,
+            years=answers.get("years", ""),
+            features=features,
+            logo=answers.get("logo", ""),
+            example=(answers.get("example") or "").strip(),
         )

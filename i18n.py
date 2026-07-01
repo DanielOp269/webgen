@@ -85,6 +85,7 @@ UI = {
         "continue_btn": "Continue →",
         "back_btn": "← Back",
         "wiz_count": "Question {n} of {total}",
+        "part_label": "Part {n} of {total}",
         "err_generic": "Something went wrong. Please try again.",
         # contact step
         "contact_title": "How can we reach you?",
@@ -155,6 +156,7 @@ UI = {
         "continue_btn": "Weiter →",
         "back_btn": "← Zurück",
         "wiz_count": "Frage {n} von {total}",
+        "part_label": "Teil {n} von {total}",
         "err_generic": "Etwas ist schiefgelaufen. Bitte erneut versuchen.",
         # contact step
         "contact_title": "Wie erreichen wir Sie?",
@@ -189,31 +191,41 @@ UI = {
 # --------------------------------------------------------------------------
 Q = {
     "en": {
-        "name": ("Business / project name", "e.g. Nordlicht Studio"),
-        "tagline": ("Tagline or one-liner (optional)", "e.g. Design that feels like home"),
-        "industry": ("What do you do? A sentence or two.",
-                     "We design calm, modern interiors for small cafés and shops."),
-        "pages": ("Which pages do you want?", ""),
-        "style": ("Overall vibe", ""),
-        "tone": ("Tone of the writing", ""),
-        "color": ("Preferred accent color (optional)", ""),
-        "cta": ("Main call to action", "e.g. Book a consultation"),
-        "services": ("List your main services / offerings (one per line)",
-                     "Interior design\nColor consulting\nFurniture sourcing"),
+        "name": ("What's your business called?", "e.g. Nordlicht Café"),
+        "business_type": ("What kind of business are you?", ""),
+        "area": ("Where are your customers?", ""),
+        "years": ("How long have you been in business?", ""),
+        "goal": ("What should your website mainly do?", ""),
+        "pages": ("Which pages would you like? (pick any)", ""),
+        "features": ("Any special features? (pick any, or skip)", ""),
+        "feel": ("How should your website feel?", ""),
+        "colors": ("Which colours feel right?", ""),
+        "logo": ("Do you already have a logo?", ""),
+        "example": ("A website whose look you like? (optional)",
+                    "Paste a link, e.g. www.example.com"),
     },
     "de": {
-        "name": ("Name des Unternehmens / Projekts", "z. B. Nordlicht Studio"),
-        "tagline": ("Slogan oder Einzeiler (optional)", "z. B. Design, das sich wie Zuhause anfühlt"),
-        "industry": ("Was machen Sie? Ein, zwei Sätze.",
-                     "Wir gestalten ruhige, moderne Innenräume für kleine Cafés und Geschäfte."),
-        "pages": ("Welche Seiten möchten Sie?", ""),
-        "style": ("Gesamtstil", ""),
-        "tone": ("Tonalität der Texte", ""),
-        "color": ("Bevorzugte Akzentfarbe (optional)", ""),
-        "cta": ("Wichtigster Handlungsaufruf", "z. B. Beratung buchen"),
-        "services": ("Ihre wichtigsten Leistungen / Angebote (eine pro Zeile)",
-                     "Innenarchitektur\nFarbberatung\nMöbelbeschaffung"),
+        "name": ("Wie heißt Ihr Unternehmen?", "z. B. Nordlicht Café"),
+        "business_type": ("Was für ein Unternehmen sind Sie?", ""),
+        "area": ("Wo sind Ihre Kunden?", ""),
+        "years": ("Wie lange gibt es Ihr Unternehmen schon?", ""),
+        "goal": ("Was soll Ihre Website vor allem tun?", ""),
+        "pages": ("Welche Seiten möchten Sie? (beliebig wählen)", ""),
+        "features": ("Besondere Funktionen? (beliebig wählen oder überspringen)", ""),
+        "feel": ("Wie soll sich Ihre Website anfühlen?", ""),
+        "colors": ("Welche Farben passen für Sie?", ""),
+        "logo": ("Haben Sie schon ein Logo?", ""),
+        "example": ("Eine Website, deren Look Ihnen gefällt? (optional)",
+                    "Link einfügen, z. B. www.beispiel.de"),
     },
+}
+
+# --------------------------------------------------------------------------
+# Question groups (the wizard shows these as "parts")
+# --------------------------------------------------------------------------
+GROUPS = {
+    "en": {"you": "About you", "website": "Your website", "look": "The look"},
+    "de": {"you": "Über Sie", "website": "Ihre Website", "look": "Das Aussehen"},
 }
 
 # --------------------------------------------------------------------------
@@ -221,20 +233,56 @@ Q = {
 # --------------------------------------------------------------------------
 OPTIONS = {
     "en": {
-        "pages": {"home": "Home", "about": "About", "services": "Services",
-                  "portfolio": "Portfolio", "pricing": "Pricing", "contact": "Contact"},
-        "style": {"modern": "Modern & minimal", "bold": "Bold & vibrant",
-                  "elegant": "Elegant & classic", "surprise": "One of each"},
-        "tone": {"friendly": "Friendly", "professional": "Professional",
-                 "luxury": "Luxury", "playful": "Playful"},
+        "business_type": {"food": "Restaurant or café", "shop": "Shop or store",
+                          "trade": "Trade or craft", "health": "Health or care",
+                          "beauty": "Beauty or wellness", "professional": "Professional service",
+                          "other": "Something else"},
+        "area": {"local": "My local area", "region": "My region",
+                 "country": "My whole country", "online": "Online — everywhere"},
+        "years": {"new": "Just getting started", "few": "A few years",
+                  "ten": "More than 10 years", "twentyfive": "More than 25 years"},
+        "goal": {"calls": "Bring in phone calls", "bookings": "Take bookings or appointments",
+                 "show": "Show what I offer", "sell": "Sell products online",
+                 "visit": "Get people to visit me"},
+        "pages": {"home": "Home", "about": "About us", "services": "Services / Menu",
+                  "gallery": "Photo gallery", "pricing": "Prices", "reviews": "Reviews",
+                  "contact": "Contact"},
+        "features": {"booking": "Online booking", "contactform": "Contact form",
+                     "map": "Map & directions", "gallery": "Photo gallery",
+                     "reviews": "Customer reviews", "shop": "Online shop",
+                     "newsletter": "Newsletter sign-up"},
+        "feel": {"warm": "Warm & friendly", "professional": "Professional & trustworthy",
+                 "modern": "Modern & clean", "classic": "Classic & elegant"},
+        "colors": {"blue": "Calm blues", "green": "Fresh greens",
+                   "warm": "Warm reds & oranges", "elegant": "Elegant black & gold",
+                   "neutral": "Soft & neutral", "designer": "Let the designer choose"},
+        "logo": {"have": "Yes, I have one", "need": "No, I need one", "unsure": "Not sure"},
     },
     "de": {
-        "pages": {"home": "Startseite", "about": "Über uns", "services": "Leistungen",
-                  "portfolio": "Portfolio", "pricing": "Preise", "contact": "Kontakt"},
-        "style": {"modern": "Modern & minimalistisch", "bold": "Auffällig & lebendig",
-                  "elegant": "Elegant & klassisch", "surprise": "Von jedem eins"},
-        "tone": {"friendly": "Freundlich", "professional": "Professionell",
-                 "luxury": "Luxuriös", "playful": "Verspielt"},
+        "business_type": {"food": "Restaurant oder Café", "shop": "Laden oder Geschäft",
+                          "trade": "Handwerk", "health": "Gesundheit oder Pflege",
+                          "beauty": "Beauty oder Wellness", "professional": "Dienstleistung",
+                          "other": "Etwas anderes"},
+        "area": {"local": "Meine Umgebung", "region": "Meine Region",
+                 "country": "Landesweit", "online": "Online — überall"},
+        "years": {"new": "Ganz frisch dabei", "few": "Ein paar Jahre",
+                  "ten": "Über 10 Jahre", "twentyfive": "Über 25 Jahre"},
+        "goal": {"calls": "Anrufe gewinnen", "bookings": "Termine/Buchungen erhalten",
+                 "show": "Zeigen, was ich anbiete", "sell": "Produkte online verkaufen",
+                 "visit": "Besucher ins Geschäft holen"},
+        "pages": {"home": "Startseite", "about": "Über uns", "services": "Leistungen / Speisekarte",
+                  "gallery": "Fotogalerie", "pricing": "Preise", "reviews": "Bewertungen",
+                  "contact": "Kontakt"},
+        "features": {"booking": "Online-Buchung", "contactform": "Kontaktformular",
+                     "map": "Karte & Anfahrt", "gallery": "Fotogalerie",
+                     "reviews": "Kundenbewertungen", "shop": "Online-Shop",
+                     "newsletter": "Newsletter-Anmeldung"},
+        "feel": {"warm": "Warm & freundlich", "professional": "Professionell & seriös",
+                 "modern": "Modern & klar", "classic": "Klassisch & elegant"},
+        "colors": {"blue": "Ruhige Blautöne", "green": "Frisches Grün",
+                   "warm": "Warme Rot- & Orangetöne", "elegant": "Elegantes Schwarz & Gold",
+                   "neutral": "Sanft & neutral", "designer": "Der Designer entscheidet"},
+        "logo": {"have": "Ja, habe ich", "need": "Nein, brauche ich", "unsure": "Bin nicht sicher"},
     },
 }
 
@@ -352,6 +400,10 @@ def page_label(key: str, lang: str) -> str:
     return OPTIONS.get(lang, OPTIONS[DEFAULT_LANG])["pages"].get(key, key.title())
 
 
+def group_label(key: str, lang: str) -> str:
+    return GROUPS.get(lang, GROUPS[DEFAULT_LANG]).get(key, key)
+
+
 def localized_questions(questions: list, lang: str) -> list:
     """Turn the structural QUESTIONS into a display schema for the frontend.
 
@@ -371,6 +423,8 @@ def localized_questions(questions: list, lang: str) -> list:
             "label": label,
             "placeholder": placeholder,
             "default": q.get("default", ""),
+            "group": q.get("group", ""),
+            "group_label": group_label(q.get("group", ""), lang),
         }
         if "options" in q:
             labels = omap.get(q["id"], {})
