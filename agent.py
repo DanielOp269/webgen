@@ -43,6 +43,7 @@ class Job:
                  lead_id: str | None = None):
         self.id = uuid.uuid4().hex[:12]
         self.lead_id = lead_id          # the Lead this job was generated for (if any)
+        self.chosen: str | None = None  # variant key the customer picked (console)
         self.brief = brief
         self.generator = generator
         self.engine_name = generator.name if generator else "?"
@@ -54,6 +55,11 @@ class Job:
         self.created = time.time()
         self.on_done = None             # callback(job) fired when run() finishes
         self._lock = threading.Lock()
+        # Set only after run() has fully finished AND on_done (persistence) has
+        # returned. Waiters must key on this, not on `status`: status flips to
+        # "done" before the file is written, so a process that exits on status
+        # alone can kill the save mid-write.
+        self.done_event = threading.Event()
 
     # -- task list ----------------------------------------------------------
 
@@ -115,6 +121,7 @@ class Job:
                     self.on_done(self)
                 except Exception:               # persistence must never crash a job
                     pass
+            self.done_event.set()               # now safe for waiters to proceed
 
     def start(self) -> None:
         threading.Thread(target=self.run, daemon=True).start()
@@ -163,6 +170,7 @@ class Job:
             return {
                 "id": self.id,
                 "lead_id": self.lead_id,
+                "chosen": self.chosen,
                 "status": self.status,
                 "error": self.error,
                 "engine": self.engine_name,
@@ -178,6 +186,7 @@ class Job:
         job = cls.__new__(cls)
         job.id = data["id"]
         job.lead_id = data.get("lead_id")
+        job.chosen = data.get("chosen")
         job.brief = Brief(**data["brief"])
         job.generator = None
         job.engine_name = data.get("engine", "?")
@@ -189,6 +198,8 @@ class Job:
         job.created = data.get("created", 0.0)
         job.on_done = None
         job._lock = threading.Lock()
+        job.done_event = threading.Event()
+        job.done_event.set()                    # restored jobs are already persisted
         return job
 
 
@@ -244,6 +255,51 @@ class JobStore:
     def get(self, job_id: str) -> Job | None:
         with self._lock:
             return self._jobs.get(job_id)
+
+    def reload(self) -> None:
+        """Pick up job files written by another process (e.g. the worker).
+
+        Finished jobs are immutable once on disk, so we only read files we don't
+        already hold. This is what lets the web server see results the separate
+        worker just produced without a restart.
+        """
+        with self._lock:
+            known = set(self._jobs)
+        for fn in sorted(os.listdir(self.data_dir)):
+            if not fn.endswith(".json") or fn[:-5] in known:
+                continue
+            try:
+                with open(os.path.join(self.data_dir, fn), encoding="utf-8") as fh:
+                    job = Job.restore(json.load(fh))
+            except Exception:                   # skip corrupt/half-written files
+                continue
+            with self._lock:
+                self._jobs.setdefault(job.id, job)
+
+    def set_choice(self, lead_id: str, variant_key: str) -> Job | None:
+        """Record the variant a customer picked in the console; persist it.
+
+        Returns the updated job, or None if there's no finished job for the lead
+        or the variant key is unknown (so the caller can 404 cleanly).
+        """
+        job = self.for_lead(lead_id)
+        if not job or job.status != "done" or job.variant(variant_key) is None:
+            return None
+        with job._lock:
+            job.chosen = variant_key
+        self._save(job)                         # atomic re-write of the job file
+        with self._lock:
+            self._jobs[job.id] = job
+        return job
+
+    def for_lead(self, lead_id: str, refresh: bool = True) -> Job | None:
+        """Newest job generated for a lead (read fresh from disk by default)."""
+        if refresh:
+            self.reload()
+        with self._lock:
+            jobs = [j for j in self._jobs.values() if j.lead_id == lead_id]
+        jobs.sort(key=lambda j: j.created, reverse=True)
+        return jobs[0] if jobs else None
 
     def all(self) -> list[Job]:
         """All jobs (live + restored), newest first."""

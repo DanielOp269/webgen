@@ -34,11 +34,12 @@ def process_once(leads: LeadStore, jobs: JobStore, *, timeout: float = 900.0) ->
     for lead in todo:
         print(f"→ generating for lead {lead.id} <{lead.contact.email}> — {lead.brief.name}")
         job = jobs.create(lead.brief, lead_id=lead.id)
-        # One at a time: wait for completion before the next. The browser is
-        # serialized anyway, and this keeps progress observable.
-        deadline = time.time() + timeout
-        while job.status not in ("done", "error") and time.time() < deadline:
-            time.sleep(2)
+        # One at a time: wait for completion (and persistence) before the next.
+        # Waiting on done_event — not job.status — guarantees the job file is
+        # fully written before we move on or the process exits.
+        if not job.done_event.wait(timeout):
+            print(f"  ⚠️  lead {lead.id} → job {job.id}: timed out after {timeout:.0f}s")
+            continue
         if job.status == "done":
             print(f"  ✅ lead {lead.id} → job {job.id} ({len(job.variants)} variant(s))")
         else:
