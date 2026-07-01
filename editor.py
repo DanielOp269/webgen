@@ -54,35 +54,39 @@ class BrowserEditor(Editor):
 
 
 class StubEditor(Editor):
-    """Offline stand-in: apply a visible, deterministic change to each page.
+    """Offline stand-in for the real (browser) editor.
 
-    Not a real edit — it just proves the plumbing end to end without a browser.
+    Not an AI edit — it can't rewrite copy or restyle — so it only does the one
+    thing it can do cleanly and visibly: when photos are attached, add a tidy
+    gallery of them. It never renders debug text or the raw instruction onto the
+    page (that internal prompt is only meaningful to the real editor).
     """
 
     name = "stub"
 
     def edit(self, brief: Brief, variant: Variant, instruction: str) -> dict[str, str]:
-        note = f"<!-- edit applied: {instruction} -->"
-        banner = (f'<div style="background:#16a34a;color:#fff;padding:10px 16px;'
-                  f'font:14px/1.4 sans-serif;text-align:center">'
-                  f'✎ {html.escape(instruction)}</div>')
-        # Attached photos → drop them onto the (home) page so the loop is visible.
         imgs = _IMG_URL.findall(instruction)
-        gallery = ""
-        if imgs:
-            tiles = "".join(
-                f'<img src="{html.escape(u)}" alt="" '
-                f'style="width:220px;height:160px;object-fit:cover;border-radius:8px">'
-                for u in imgs
-            )
-            gallery = (f'<div style="display:flex;gap:12px;flex-wrap:wrap;'
-                       f'justify-content:center;padding:24px">{tiles}</div>')
-        revised: dict[str, str] = {}
-        for fname, doc in variant.files.items():
-            add = banner + (gallery if fname == "index.html" else "")
-            if "<body>" in doc:
-                doc = doc.replace("<body>", "<body>\n" + add, 1)
-            revised[fname] = note + "\n" + doc
+        if not imgs:
+            return dict(variant.files)          # nothing this stub can do — leave as-is
+        tiles = "".join(
+            f'<img src="{html.escape(u)}" alt="" loading="lazy" '
+            f'style="width:100%;height:240px;object-fit:cover;border-radius:12px">'
+            for u in imgs
+        )
+        gallery = (
+            '<section style="padding:72px 24px">'
+            '<div style="max-width:1080px;margin:0 auto">'
+            '<h2 style="text-align:center;font-size:32px;margin:0 0 28px">Gallery</h2>'
+            '<div style="display:grid;gap:18px;'
+            'grid-template-columns:repeat(auto-fill,minmax(260px,1fr))">'
+            f'{tiles}</div></div></section>'
+        )
+        revised = dict(variant.files)
+        home = "index.html"
+        if home in revised and "</body>" in revised[home].lower():
+            doc = revised[home]
+            idx = doc.lower().rfind("</body>")
+            revised[home] = doc[:idx] + gallery + doc[idx:]
         return revised
 
 
