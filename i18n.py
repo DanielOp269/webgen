@@ -113,6 +113,25 @@ UI = {
         "task_choose": "Choose {n} design directions",
         "task_generate": "Generate the “{title}” concept",
         "task_package": "Package previews",
+        # customer console (where a lead views their finished options)
+        "console_title": "Your website options",
+        "console_for": "Prepared for {name}",
+        "console_ready_h": "Your options are ready",
+        "console_ready_sub": "Here are the designs we created from your brief. "
+                             "Open a full preview or download any option.",
+        "console_open": "Open full preview →",
+        "console_download": "Download",
+        "console_pending_h": "We're preparing your options",
+        "console_pending_sub": "Our team is designing your website now. This page "
+                               "will update automatically — you can safely leave "
+                               "and come back.",
+        "console_error_h": "We hit a snag",
+        "console_error_sub": "Something went wrong while creating your options. "
+                             "We're on it and will be in touch shortly.",
+        "console_notfound_h": "Nothing here yet",
+        "console_notfound_sub": "We couldn't find any options for this link. "
+                                "If you just submitted your brief, please check "
+                                "back shortly.",
     },
     "de": {
         # homepage / landing
@@ -185,6 +204,27 @@ UI = {
         "task_choose": "{n} Design-Richtungen wählen",
         "task_generate": "Konzept „{title}“ erstellen",
         "task_package": "Vorschauen zusammenstellen",
+        # Kundenkonsole (wo ein Lead seine fertigen Optionen ansieht)
+        "console_title": "Ihre Website-Optionen",
+        "console_for": "Erstellt für {name}",
+        "console_ready_h": "Ihre Optionen sind fertig",
+        "console_ready_sub": "Hier sind die Designs, die wir aus Ihrem Briefing "
+                             "erstellt haben. Öffnen Sie eine Vorschau oder laden "
+                             "Sie eine Option herunter.",
+        "console_open": "Vollständige Vorschau öffnen →",
+        "console_download": "Herunterladen",
+        "console_pending_h": "Wir bereiten Ihre Optionen vor",
+        "console_pending_sub": "Unser Team gestaltet gerade Ihre Website. Diese "
+                               "Seite aktualisiert sich automatisch — Sie können "
+                               "sie bedenkenlos verlassen und später zurückkehren.",
+        "console_error_h": "Da ist etwas schiefgelaufen",
+        "console_error_sub": "Beim Erstellen Ihrer Optionen ist ein Fehler "
+                             "aufgetreten. Wir kümmern uns darum und melden uns "
+                             "in Kürze.",
+        "console_notfound_h": "Hier ist noch nichts",
+        "console_notfound_sub": "Wir konnten für diesen Link keine Optionen "
+                                "finden. Wenn Sie Ihr Briefing gerade abgeschickt "
+                                "haben, schauen Sie bitte in Kürze wieder vorbei.",
     },
 }
 

@@ -54,6 +54,11 @@ class Job:
         self.created = time.time()
         self.on_done = None             # callback(job) fired when run() finishes
         self._lock = threading.Lock()
+        # Set only after run() has fully finished AND on_done (persistence) has
+        # returned. Waiters must key on this, not on `status`: status flips to
+        # "done" before the file is written, so a process that exits on status
+        # alone can kill the save mid-write.
+        self.done_event = threading.Event()
 
     # -- task list ----------------------------------------------------------
 
@@ -115,6 +120,7 @@ class Job:
                     self.on_done(self)
                 except Exception:               # persistence must never crash a job
                     pass
+            self.done_event.set()               # now safe for waiters to proceed
 
     def start(self) -> None:
         threading.Thread(target=self.run, daemon=True).start()
@@ -189,6 +195,8 @@ class Job:
         job.created = data.get("created", 0.0)
         job.on_done = None
         job._lock = threading.Lock()
+        job.done_event = threading.Event()
+        job.done_event.set()                    # restored jobs are already persisted
         return job
 
 
@@ -244,6 +252,35 @@ class JobStore:
     def get(self, job_id: str) -> Job | None:
         with self._lock:
             return self._jobs.get(job_id)
+
+    def reload(self) -> None:
+        """Pick up job files written by another process (e.g. the worker).
+
+        Finished jobs are immutable once on disk, so we only read files we don't
+        already hold. This is what lets the web server see results the separate
+        worker just produced without a restart.
+        """
+        with self._lock:
+            known = set(self._jobs)
+        for fn in sorted(os.listdir(self.data_dir)):
+            if not fn.endswith(".json") or fn[:-5] in known:
+                continue
+            try:
+                with open(os.path.join(self.data_dir, fn), encoding="utf-8") as fh:
+                    job = Job.restore(json.load(fh))
+            except Exception:                   # skip corrupt/half-written files
+                continue
+            with self._lock:
+                self._jobs.setdefault(job.id, job)
+
+    def for_lead(self, lead_id: str, refresh: bool = True) -> Job | None:
+        """Newest job generated for a lead (read fresh from disk by default)."""
+        if refresh:
+            self.reload()
+        with self._lock:
+            jobs = [j for j in self._jobs.values() if j.lead_id == lead_id]
+        jobs.sort(key=lambda j: j.created, reverse=True)
+        return jobs[0] if jobs else None
 
     def all(self) -> list[Job]:
         """All jobs (live + restored), newest first."""

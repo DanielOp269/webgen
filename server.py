@@ -11,17 +11,21 @@ itself — that happens separately via our own API, fed from the stored leads.
 All bodies are UTF-8; only ASCII goes in headers (http.server uses Latin-1 there).
 """
 
+import io
 import json
 import os
+import zipfile
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlsplit
 
-from . import i18n
+from . import console, i18n
+from .agent import JobStore
 from .brief import Brief, QUESTIONS
 from .leads import Contact, LeadStore
 
 _STATIC = os.path.join(os.path.dirname(__file__), "static")
 STORE = LeadStore()
+JOBS = JobStore()               # finished jobs written by the worker (read fresh per request)
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -70,7 +74,66 @@ class Handler(BaseHTTPRequestHandler):
                 "chapters": i18n.chapters_list(lang),
                 "languages": i18n.LANG_NAMES,
             })
+        if path == "/c" or path.startswith("/c/"):
+            return self._console(path)
         self._json(404, {"error": "not found"})
+
+    # -- customer console ---------------------------------------------------
+
+    def _console(self, path: str):
+        """Routes under /c/<lead_id>: the page, per-variant preview, and zip."""
+        parts = path.strip("/").split("/")        # ["c", lead_id, ...]
+        if len(parts) < 2 or not parts[1]:
+            return self._json(404, {"error": "not found"})
+        lead_id = parts[1]
+        lead = STORE.get(lead_id)
+        job = JOBS.for_lead(lead_id) if lead else None
+        lang = lead.brief.lang if lead else i18n.from_accept_language(
+            self.headers.get("Accept-Language"))
+
+        # /c/<lead_id>  → the console page (states: pending / ready / error)
+        if len(parts) == 2:
+            code = 200 if lead else 404
+            return self._html(code, console.render_page(lead, job, lang))
+
+        # everything below needs a finished variant to serve
+        variant = None
+        if len(parts) >= 4 and parts[2] == "v" and job:
+            v_key = parts[3][:-4] if parts[3].endswith(".zip") else parts[3]
+            variant = job.variant(v_key)
+        if variant is None:
+            return self._json(404, {"error": "not found"})
+
+        # /c/<lead_id>/v/<key>.zip  → download all files for this option
+        if len(parts) == 4 and parts[3].endswith(".zip"):
+            return self._variant_zip(lead, variant)
+
+        # /c/<lead_id>/v/<key>/site[/<file>]  → serve a rendered file for preview
+        if len(parts) >= 5 and parts[4] == "site":
+            fname = parts[5] if len(parts) >= 6 and parts[5] else "index.html"
+            body = variant.files.get(fname)
+            if body is None:
+                return self._json(404, {"error": "not found"})
+            return self._html(200, body)
+
+        return self._json(404, {"error": "not found"})
+
+    def _variant_zip(self, lead, variant):
+        buf = io.BytesIO()
+        with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+            for fname, html_text in variant.files.items():
+                zf.writestr(fname, html_text)
+        data = buf.getvalue()
+        # ASCII-only filename in the header (http.server encodes headers as Latin-1).
+        stem = "".join(c if c.isalnum() else "-" for c in lead.brief.name).strip("-")
+        name = f"{stem or 'website'}-{variant.key}.zip"
+        self.send_response(200)
+        self.send_header("Content-Type", "application/zip")
+        self.send_header("Content-Disposition", f'attachment; filename="{name}"')
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers()
+        if self.command != "HEAD":
+            self.wfile.write(data)
 
     def do_HEAD(self):
         self.do_GET()
