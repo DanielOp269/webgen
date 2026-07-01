@@ -104,9 +104,13 @@ class BrowserGenerator(Generator):
     name = "browser"
     variants = 1
 
+    def __init__(self):
+        self.chat_url = ""              # conversation for the last generate() (read by the Job)
+
     def generate(self, brief: Brief, direction: Direction) -> dict[str, str]:
         from . import browser, i18n
 
+        self.chat_url = ""
         prompt = browser.site_prompt(
             brief.name, _describe_brief(brief, i18n),
             tone=_FEEL_TONE.get(brief.feel, "warm and confident"),
@@ -114,10 +118,11 @@ class BrowserGenerator(Generator):
             aesthetic=direction.key,
         )
         headless = os.environ.get("WEBGEN_HEADLESS", "").lower() in ("1", "true", "yes")
-        html = browser.generate_html(prompt, refine=browser.REFINE_PROMPT,
-                                     headless=headless)
+        html, chat_url = browser.generate_html(prompt, refine=browser.REFINE_PROMPT,
+                                               headless=headless)
         if not html:
             raise RuntimeError("browser generation produced no HTML")
+        self.chat_url = chat_url or ""
         return {"index.html": html}
 
 

@@ -188,6 +188,8 @@ class Handler(BaseHTTPRequestHandler):
         path = urlsplit(self.path).path
         if path.startswith("/c/") and path.endswith("/choose"):
             return self._console_choose(path)
+        if path.startswith("/c/") and path.endswith("/edit"):
+            return self._console_edit(path)
         if path != "/api/submit":
             return self._json(404, {"error": "not found"})
         try:
@@ -211,10 +213,21 @@ class Handler(BaseHTTPRequestHandler):
         form = parse_qs(self.rfile.read(length).decode("utf-8", "replace"))
         variant = (form.get("variant") or [""])[0]
         JOBS.set_choice(lead_id, variant)       # None result → still redirect back
-        # POST→redirect→GET so a refresh doesn't re-submit; the console then
-        # renders the confirmed state.
+        self._redirect(f"/c/{lead_id}")
+
+    def _console_edit(self, path: str):
+        """POST /c/<lead_id>/edit {instruction} — queue a plain-language change."""
+        lead_id = path.strip("/").split("/")[1]
+        length = int(self.headers.get("Content-Length", 0))
+        form = parse_qs(self.rfile.read(length).decode("utf-8", "replace"))
+        instruction = (form.get("instruction") or [""])[0]
+        JOBS.request_edit(lead_id, instruction)  # None (empty/no choice) → just redirect
+        self._redirect(f"/c/{lead_id}")
+
+    def _redirect(self, location: str):
+        # POST→redirect→GET so a refresh doesn't re-submit.
         self.send_response(303)
-        self.send_header("Location", f"/c/{lead_id}")
+        self.send_header("Location", location)
         self.send_header("Content-Length", "0")
         self.end_headers()
 

@@ -130,6 +130,14 @@ UI = {
                               "mind? Just pick another below and it switches "
                               "instantly.",
         "console_visit": "Visit your website →",
+        "console_edit_label": "Want a change? Just tell us — no tech needed.",
+        "console_edit_ph": "e.g. change our opening hours, use warmer colours, "
+                           "add our phone number to the top",
+        "console_edit_btn": "Send change →",
+        "console_editing_h": "We're making your change",
+        "console_editing_sub": "Hang tight — we're updating your website now. "
+                               "This page updates automatically, so you can leave "
+                               "and come back.",
         "console_pending_h": "We're preparing your options",
         "console_pending_sub": "Our team is designing your website now. This page "
                                "will update automatically — you can safely leave "
@@ -230,6 +238,15 @@ UI = {
                               "Wählen Sie einfach unten eine andere — sie wird "
                               "sofort umgestellt.",
         "console_visit": "Website ansehen →",
+        "console_edit_label": "Eine Änderung gewünscht? Sagen Sie einfach Bescheid "
+                              "— ganz ohne Technik.",
+        "console_edit_ph": "z. B. Öffnungszeiten ändern, wärmere Farben, unsere "
+                           "Telefonnummer oben ergänzen",
+        "console_edit_btn": "Änderung senden →",
+        "console_editing_h": "Wir setzen Ihre Änderung um",
+        "console_editing_sub": "Einen Moment — wir aktualisieren gerade Ihre "
+                               "Website. Diese Seite aktualisiert sich automatisch, "
+                               "Sie können sie also verlassen und später zurückkehren.",
         "console_pending_h": "Wir bereiten Ihre Optionen vor",
         "console_pending_sub": "Unser Team gestaltet gerade Ihre Website. Diese "
                                "Seite aktualisiert sich automatisch — Sie können "

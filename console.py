@@ -80,6 +80,14 @@ main { padding: 24px 0 64px; }
 .hero.confirmed .btn.live { background: #16a34a; margin-top: 18px; padding: 13px 24px;
    font-size: 16px; }
 .hero.confirmed .btn.live:hover { filter: brightness(1.05); }
+.editbox { margin-top: 26px; max-width: 560px; background: #fff;
+   border: 1px solid #e2e8f0; border-radius: 14px; padding: 18px; text-align: left; }
+.editbox label { display: block; font-weight: 600; font-size: 15px;
+   color: #0f172a; margin-bottom: 8px; }
+.editbox textarea { width: 100%; padding: 12px 14px; border: 1px solid #cbd5e1;
+   border-radius: 10px; font: inherit; resize: vertical; color: #0f172a; }
+.editbox textarea:focus { outline: none; border-color: #2563eb; }
+.editbox .btn { margin-top: 10px; }
 .state { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px;
          padding: 48px 40px; text-align: center; margin-top: 32px; }
 .state h1 { font-size: 26px; margin-bottom: 10px; }
@@ -179,6 +187,11 @@ def render_page(lead: Lead | None, job: Job | None, lang: str) -> str:
         return _state_page(lang, brand, sub, U["console_error_h"],
                            U["console_error_sub"], spinner=False, refresh=False)
 
+    # A customer-requested change is being applied → reassure + poll for the result.
+    if job.edit_status in ("pending", "applying"):
+        return _state_page(lang, brand, sub, U["console_editing_h"],
+                           U["console_editing_sub"], spinner=True, refresh=True)
+
     chosen = job.chosen
     cards = "".join(
         _variant_card(lead, v.key, v.title, v.blurb, v.accent,
@@ -191,12 +204,20 @@ def render_page(lead: Lead | None, job: Job | None, lang: str) -> str:
         title = job.variant(chosen).title
         heading = U["console_chosen_h"]
         sub_msg = U["console_chosen_sub"].format(title=title)
+        edit_box = f"""<form class="editbox" method="post"
+        action="/c/{_esc(lead.id)}/edit">
+    <label>{_esc(U['console_edit_label'])}</label>
+    <textarea name="instruction" rows="2" required
+              placeholder="{_esc(U['console_edit_ph'])}"></textarea>
+    <button class="btn primary" type="submit">{_esc(U['console_edit_btn'])}</button>
+  </form>"""
         hero = f"""<section class="hero confirmed"><div class="wrap">
   <div class="check">✓</div>
   <h1>{_esc(heading)}</h1>
   <p>{_esc(sub_msg)}</p>
   <a class="btn primary live" href="/site/{_esc(lead.id)}/" target="_blank"
      rel="noopener">{_esc(U['console_visit'])}</a>
+  {edit_box}
 </div></section>"""
     else:
         hero = f"""<section class="hero"><div class="wrap">

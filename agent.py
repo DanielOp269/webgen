@@ -28,6 +28,7 @@ class Variant:
     accent: str
     files: dict[str, str]               # filename -> html
     pages: list[str] = field(default_factory=list)
+    chat_url: str = ""                  # claude.ai conversation (browser engine) — lets edits reopen it
 
 
 @dataclass
@@ -44,6 +45,11 @@ class Job:
         self.id = uuid.uuid4().hex[:12]
         self.lead_id = lead_id          # the Lead this job was generated for (if any)
         self.chosen: str | None = None  # variant key the customer picked (console)
+        # Plain-language edit the customer asked for on their live site. Applied
+        # asynchronously by the worker to the chosen variant.
+        self.edit_status = ""           # "" | pending | applying | done | error
+        self.edit_instruction = ""      # the current pending request
+        self.edits: list[str] = []      # history of applied instructions
         self.brief = brief
         self.generator = generator
         self.engine_name = generator.name if generator else "?"
@@ -100,12 +106,15 @@ class Job:
                 title, blurb = i18n.direction_label(d.key, self.brief.lang)
                 # Reflect the pages actually produced (a browser variant is a
                 # single index.html, the template engine emits every brief page).
-                pages = [pk for pk in self.brief.pages
-                         if ("index.html" if pk == "home" else pk + ".html") in files]
+                pages = self._pages_for(files)
+                # Browser engine exposes the conversation it used, so edits can
+                # reopen it; other engines leave it blank.
+                chat_url = getattr(self.generator, "chat_url", "") or ""
                 with self._lock:
                     self.variants.append(Variant(
                         key=d.key, title=title, blurb=blurb, accent=d.accent,
                         files=files, pages=pages or list(self.brief.pages),
+                        chat_url=chat_url,
                     ))
                 self._advance(t, "done")
 
@@ -125,6 +134,36 @@ class Job:
 
     def start(self) -> None:
         threading.Thread(target=self.run, daemon=True).start()
+
+    # -- edits --------------------------------------------------------------
+
+    def _pages_for(self, files: dict[str, str]) -> list[str]:
+        """Which brief pages a file set actually contains (home -> index.html)."""
+        return [pk for pk in self.brief.pages
+                if ("index.html" if pk == "home" else pk + ".html") in files]
+
+    def apply_edit(self, editor) -> None:
+        """Apply the pending edit to the chosen variant via an Editor engine."""
+        v = self.variant(self.chosen or "")
+        if v is None:
+            self.edit_status = "error"
+            self.error = "no chosen variant to edit"
+            return
+        instruction = self.edit_instruction
+        self.edit_status = "applying"
+        try:
+            new_files = editor.edit(self.brief, v, instruction)
+            if not new_files:
+                raise RuntimeError("editor produced no files")
+            with self._lock:
+                v.files = new_files
+                v.pages = self._pages_for(new_files) or v.pages
+                self.edits.append(instruction)
+                self.edit_instruction = ""
+                self.edit_status = "done"
+        except Exception as exc:                # noqa: BLE001 — surface to UI
+            self.edit_status = "error"
+            self.error = str(exc)
 
     # -- read models for the API -------------------------------------------
 
@@ -171,6 +210,9 @@ class Job:
                 "id": self.id,
                 "lead_id": self.lead_id,
                 "chosen": self.chosen,
+                "edit_status": self.edit_status,
+                "edit_instruction": self.edit_instruction,
+                "edits": list(self.edits),
                 "status": self.status,
                 "error": self.error,
                 "engine": self.engine_name,
@@ -187,6 +229,9 @@ class Job:
         job.id = data["id"]
         job.lead_id = data.get("lead_id")
         job.chosen = data.get("chosen")
+        job.edit_status = data.get("edit_status", "")
+        job.edit_instruction = data.get("edit_instruction", "")
+        job.edits = list(data.get("edits", []))
         job.brief = Brief(**data["brief"])
         job.generator = None
         job.engine_name = data.get("engine", "?")
@@ -216,22 +261,30 @@ class JobStore:
             os.path.dirname(__file__), "data", "jobs")
         os.makedirs(self.data_dir, exist_ok=True)
         self._jobs: dict[str, Job] = {}
+        self._mtimes: dict[str, float] = {}     # job id -> file mtime last loaded
         self._lock = threading.Lock()
         self._load_all()
 
     def _path(self, job_id: str) -> str:
         return os.path.join(self.data_dir, job_id + ".json")
 
+    def _load_file(self, fn: str) -> None:
+        """Load one job file into the registry, recording its mtime."""
+        path = os.path.join(self.data_dir, fn)
+        try:
+            mtime = os.path.getmtime(path)
+            with open(path, encoding="utf-8") as fh:
+                job = Job.restore(json.load(fh))
+        except Exception:                       # skip corrupt/half-written files
+            return
+        with self._lock:
+            self._jobs[job.id] = job
+            self._mtimes[job.id] = mtime
+
     def _load_all(self) -> None:
         for fn in sorted(os.listdir(self.data_dir)):
-            if not fn.endswith(".json"):
-                continue
-            try:
-                with open(os.path.join(self.data_dir, fn), encoding="utf-8") as fh:
-                    job = Job.restore(json.load(fh))
-                self._jobs[job.id] = job
-            except Exception:                   # skip corrupt/old files, keep serving
-                continue
+            if fn.endswith(".json"):
+                self._load_file(fn)
 
     def _save(self, job: Job) -> None:
         # Atomic write so a crash mid-write never leaves a half file.
@@ -239,6 +292,9 @@ class JobStore:
         with open(tmp, "w", encoding="utf-8") as fh:
             json.dump(job.to_dict(), fh)
         os.replace(tmp, self._path(job.id))
+        with self._lock:                        # don't re-read our own write
+            self._jobs[job.id] = job
+            self._mtimes[job.id] = os.path.getmtime(self._path(job.id))
 
     def create(self, brief: Brief, generator: Generator | None = None,
                n: int | None = None, lead_id: str | None = None) -> Job:
@@ -257,24 +313,25 @@ class JobStore:
             return self._jobs.get(job_id)
 
     def reload(self) -> None:
-        """Pick up job files written by another process (e.g. the worker).
+        """Pick up job files written or updated by another process.
 
-        Finished jobs are immutable once on disk, so we only read files we don't
-        already hold. This is what lets the web server see results the separate
-        worker just produced without a restart.
+        Reloads new files and any whose mtime changed since we last read them,
+        so the two processes see each other's writes: the web server sees jobs
+        (and edit requests/results) the worker produced, and the worker sees
+        edit requests the server saved — all without a restart.
         """
-        with self._lock:
-            known = set(self._jobs)
         for fn in sorted(os.listdir(self.data_dir)):
-            if not fn.endswith(".json") or fn[:-5] in known:
+            if not fn.endswith(".json"):
                 continue
+            path = os.path.join(self.data_dir, fn)
             try:
-                with open(os.path.join(self.data_dir, fn), encoding="utf-8") as fh:
-                    job = Job.restore(json.load(fh))
-            except Exception:                   # skip corrupt/half-written files
+                mtime = os.path.getmtime(path)
+            except OSError:
                 continue
             with self._lock:
-                self._jobs.setdefault(job.id, job)
+                fresh = self._mtimes.get(fn[:-5]) == mtime
+            if not fresh:
+                self._load_file(fn)
 
     def set_choice(self, lead_id: str, variant_key: str) -> Job | None:
         """Record the variant a customer picked in the console; persist it.
@@ -288,9 +345,34 @@ class JobStore:
         with job._lock:
             job.chosen = variant_key
         self._save(job)                         # atomic re-write of the job file
-        with self._lock:
-            self._jobs[job.id] = job
         return job
+
+    def request_edit(self, lead_id: str, instruction: str) -> Job | None:
+        """Queue a plain-language edit for a lead's chosen site. Persist it so
+        the (separate) worker process picks it up. Returns None if there's no
+        finished, chosen job or the instruction is empty."""
+        instruction = (instruction or "").strip()
+        job = self.for_lead(lead_id)
+        if not job or job.status != "done" or not job.chosen or not instruction:
+            return None
+        with job._lock:
+            job.edit_instruction = instruction
+            job.edit_status = "pending"
+        self._save(job)
+        return job
+
+    def apply_pending(self, job: Job, editor) -> Job:
+        """Apply a job's pending edit via an Editor engine, then persist."""
+        job.apply_edit(editor)
+        self._save(job)
+        return job
+
+    def pending_edits(self, refresh: bool = True) -> list[Job]:
+        """Jobs with an edit waiting to be applied (read fresh from disk)."""
+        if refresh:
+            self.reload()
+        with self._lock:
+            return [j for j in self._jobs.values() if j.edit_status == "pending"]
 
     def for_lead(self, lead_id: str, refresh: bool = True) -> Job | None:
         """Newest job generated for a lead (read fresh from disk by default)."""

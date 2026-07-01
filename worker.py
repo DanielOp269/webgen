@@ -19,6 +19,7 @@ from __future__ import annotations
 import time
 
 from .agent import JobStore
+from .editor import default_editor
 from .leads import LeadStore
 
 
@@ -47,13 +48,27 @@ def process_once(leads: LeadStore, jobs: JobStore, *, timeout: float = 900.0) ->
     return len(todo)
 
 
+def process_edits(jobs: JobStore, editor) -> int:
+    """Apply every pending customer edit to its chosen site. Returns how many."""
+    todo = jobs.pending_edits()
+    for job in todo:
+        print(f"→ editing job {job.id} (lead {job.lead_id}): {job.edit_instruction!r}")
+        jobs.apply_pending(job, editor)
+        mark = "✅" if job.edit_status == "done" else "⚠️ "
+        print(f"  {mark} job {job.id} edit → {job.edit_status}"
+              + (f" ({job.error})" if job.edit_status == "error" else ""))
+    return len(todo)
+
+
 def run(interval: float = 10.0, once: bool = False) -> None:
     leads = LeadStore()
     jobs = JobStore()
+    editor = default_editor()
     print(f"webgen worker — watching {leads.data_dir}")
     while True:
         try:
             process_once(leads, jobs)
+            process_edits(jobs, editor)         # customer-requested changes
         except Exception as exc:                # never let one failure kill the loop
             print(f"worker error: {exc}")
         if once:
