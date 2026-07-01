@@ -4,9 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-webgen is a website generator: a lead answers a short questionnaire, an "agent" turns that brief into several complete multi-page static-site concepts (different visual directions), and the lead previews/downloads them. It is the **generation engine** of a larger product — the marketing site and the questionnaire form that feeds it are owned by another team; this repo owns the box that turns a brief into finished site options.
+webgen is a near-"zero-human" service that sells AI-generated websites. A small-business owner fills a questionnaire (the **funnel**), a **worker** turns that brief into a finished website, the owner reviews the option(s) in a **console**, picks one, it goes live, and they can edit it in plain language. The whole product lives in this one repo.
 
-Today the engine is a deterministic offline template renderer. The intended upgrade is real AI generation (Claude API), wired behind an unchanged interface — see `generator.py`.
+Two long-running processes share `data/` on disk: the **web server** (`--serve` — funnel, console, live-site hosting) and the **worker** (`--worker` — the slow/fragile generation + edits, decoupled so a wedged browser can't take down lead capture). Generation runs either offline (deterministic template renderer, `render.py`) or for real by driving **claude.ai in a browser** (`browser.py`, Playwright), selected by `WEBGEN_ENGINE`.
 
 ## Running
 
@@ -30,7 +30,7 @@ Run from the *parent* directory of the repo (the package is imported as `webgen`
 
 ## Architecture
 
-The product is splitting into two decoupled halves (see `PROJECT_NOTES.md`): a **customer funnel** that only *captures leads* (Daniel's `feature/lead-funnel` branch — not yet merged), and **our generation engine** that consumes those leads and produces sites. The legacy synchronous flow still lives in `server.py` (questionnaire → job → preview/download) and is now mainly an internal/dev view.
+The product is two decoupled halves that share `data/` on disk (both merged to `main`): a **customer funnel + console** (the web server) and a **generation worker**. The funnel captures a Lead; the worker generates a site for it; the console lets the owner review / choose / edit; the chosen site is hosted at `/site/<lead>/`. The funnel + brief UI is owned by Daniel (`DanielOp269`), the engine + console + editor by Philip (`lucasagency`).
 
 The generation path: **lead (brief + contact) → worker → background job → generator → rendered variant(s) → preview/download**. Flat module layout, no subpackages.
 
@@ -38,13 +38,13 @@ The generation path: **lead (brief + contact) → worker → background job → 
 - **`leads.py`** — `Lead` (Brief + Contact) and `LeadStore` (one JSON per lead under `data/leads/`, atomic write, reload on startup). Adopted from Daniel's branch as the shared input contract; the funnel writes leads, the worker reads them.
 - **`worker.py`** — `python -m webgen --worker`. Polls `data/leads/`, generates each lead that has no job yet (linked via `Job.lead_id`), idempotent, serialized one-at-a-time. The separate process that does the slow/fragile generation so a wedged browser can't take down lead capture.
 
-- **`server.py`** — zero-dep HTTP server (`http.server.ThreadingHTTPServer`). Defines all routes (listed in its module docstring). `POST /api/generate` builds a `Brief` and creates a job that runs in a background thread; the frontend polls `GET /api/job/<id>` for progress. Previews are served from memory, downloads are zipped on the fly. Bound to `127.0.0.1` only.
+- **`server.py`** — zero-dep HTTP server (`http.server.ThreadingHTTPServer`), bound to `127.0.0.1`. Funnel: `GET /`, `GET /api/schema`, `POST /api/submit` (creates a Lead). Console + hosting: `GET/POST /c/<lead>/…` (page, choose, editor, save-site, upload, img, edit) and `GET /site/<lead>/…` (the chosen live site). Reads jobs fresh from a shared `JobStore` each request (mtime-aware, so it sees the worker's output). Access is guarded only by the unguessable `lead_id` — MVP; needs real per-lead auth before it's public. `console.py`/`siteedit.py`/`uploads.py`/`devseed.py` back these routes.
 - **`brief.py`** — `QUESTIONS` (the questionnaire **structure** only: ids, types, and stable option *value keys*) and `Brief` (normalized, validated answers). `Brief.from_answers` validates required fields and returns errors in the answer's language.
 - **`agent.py`** — `Job`, `Task`, `Variant`, `JobStore`. A `Job` owns an ordered task list and runs the generation on a daemon thread, advancing task statuses so the UI shows step-by-step progress. `JobStore` persists **finished** jobs to disk as one JSON file each (`data/jobs/<id>.json`, atomic write) and reloads them on startup; restored jobs never re-run (no generator attached). Jobs carry an optional `lead_id` linking back to the `Lead` they were generated for; a variant's `pages` reflects the files actually produced (so a single-page browser site shows no broken page tabs).
 - **`generator.py`** — the swap seam. `Generator` is the interface (`generate(brief, direction) -> {filename: html}`, plus a `variants` class attr = default option count). `TemplateGenerator` (offline, 3 multi-page variants), `BrowserGenerator` (real claude.ai via `browser.py`; **single-page** `index.html`, `variants=1` because it's slow + serialized; maps each Direction to a prompt aesthetic), and the stubbed `ClaudeGenerator`. `default_generator()` selects by `WEBGEN_ENGINE`/key (see Running). The seam means new engines need no edits to server/agent/worker.
 - **`render.py`** — `TemplateGenerator`'s engine. `Direction` = a self-contained look (palette, fonts, hero style); `DIRECTIONS` holds the built-in set. `pick_directions` chooses which directions a brief gets. `render_site` builds each requested page as a full HTML doc with inlined CSS, via per-page builder functions in `_PAGE_BUILDERS`.
 - **`i18n.py`** — all human-readable text for every supported language (UI chrome, question/option labels, generated-site copy). Imports nothing from the package so anything can use it freely.
-- **`static/index.html`** — the entire single-page questionnaire frontend (vanilla JS, no build step). Fetches `/api/schema` to render the localized form, posts answers, polls the job, shows previews.
+- **`static/index.html`** — the entire funnel front end (vanilla JS, no build step): an Apple-style scrollytelling landing, the 3-chapter brief **accordion** (fetches `/api/schema`; one category box at a time, each stamps "Erledigt/Done" and auto-scrolls to the next), and the contact + thank-you steps. Posts to `/api/submit`. GSAP/ScrollTrigger/Lenis load from a CDN as enhancement-only (degrades gracefully offline / reduced-motion).
 
 ## Conventions that matter
 
