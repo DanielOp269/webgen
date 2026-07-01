@@ -76,7 +76,44 @@ class Handler(BaseHTTPRequestHandler):
             })
         if path == "/c" or path.startswith("/c/"):
             return self._console(path)
+        if path == "/site" or path.startswith("/site/"):
+            return self._live_site(path)
         self._json(404, {"error": "not found"})
+
+    # -- the customer's live website ----------------------------------------
+
+    def _live_site(self, path: str):
+        """Public hosting of a customer's chosen site at /site/<lead_id>/.
+
+        Serves the variant the customer picked in the console (free for now;
+        later a paywall gates the choose → live transition). Real hosting /
+        a custom domain swap in behind this same route later.
+        """
+        parts = path.strip("/").split("/")        # ["site", lead_id, <file>]
+        if len(parts) < 2 or not parts[1]:
+            return self._json(404, {"error": "not found"})
+        lead_id = parts[1]
+
+        # Relative links in the generated pages (about.html, …) only resolve if
+        # the base path ends in a slash — redirect /site/<id> → /site/<id>/.
+        if len(parts) == 2 and not path.endswith("/"):
+            self.send_response(308)
+            self.send_header("Location", f"/site/{lead_id}/")
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+            return
+
+        job = JOBS.for_lead(lead_id)
+        if not job or not job.chosen:
+            return self._json(404, {"error": "not found"})
+        variant = job.variant(job.chosen)
+        if variant is None:
+            return self._json(404, {"error": "not found"})
+        fname = parts[2] if len(parts) >= 3 and parts[2] else "index.html"
+        body = variant.files.get(fname)
+        if body is None:
+            return self._json(404, {"error": "not found"})
+        self._html(200, body)
 
     # -- customer console ---------------------------------------------------
 

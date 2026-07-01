@@ -124,10 +124,12 @@ UI = {
         "console_choose": "Choose this one →",
         "console_chosen_badge": "✓ Your choice",
         "console_selected": "Selected",
-        "console_chosen_h": "Great choice — we'll take it from here",
-        "console_chosen_sub": "You chose the “{title}” design. We'll get it "
-                              "finished, put it online for you, and be in touch "
-                              "soon. Changed your mind? Just pick another below.",
+        "console_chosen_h": "That's the one — your website is live",
+        "console_chosen_sub": "Your “{title}” design is online now. We'll be in "
+                              "touch about your own web address. Changed your "
+                              "mind? Just pick another below and it switches "
+                              "instantly.",
+        "console_visit": "Visit your website →",
         "console_pending_h": "We're preparing your options",
         "console_pending_sub": "Our team is designing your website now. This page "
                                "will update automatically — you can safely leave "
@@ -222,11 +224,12 @@ UI = {
         "console_choose": "Diese möchte ich →",
         "console_chosen_badge": "✓ Ihre Wahl",
         "console_selected": "Ausgewählt",
-        "console_chosen_h": "Gute Wahl — wir übernehmen ab hier",
-        "console_chosen_sub": "Sie haben das Design „{title}“ gewählt. Wir stellen "
-                              "es fertig, bringen es für Sie online und melden uns "
-                              "in Kürze. Anders überlegt? Wählen Sie einfach unten "
-                              "eine andere.",
+        "console_chosen_h": "Das ist die Richtige — Ihre Website ist live",
+        "console_chosen_sub": "Ihr Design „{title}“ ist jetzt online. Wegen Ihrer "
+                              "eigenen Web-Adresse melden wir uns. Anders überlegt? "
+                              "Wählen Sie einfach unten eine andere — sie wird "
+                              "sofort umgestellt.",
+        "console_visit": "Website ansehen →",
         "console_pending_h": "Wir bereiten Ihre Optionen vor",
         "console_pending_sub": "Unser Team gestaltet gerade Ihre Website. Diese "
                                "Seite aktualisiert sich automatisch — Sie können "
