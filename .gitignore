@@ -1,6 +1,5 @@
-# Runtime job store (per-user generated data, not source)
-data/jobs/
-data/leads/
+# Runtime data: generated jobs + captured leads (not source)
+data/
 
 # Python
 __pycache__/

@@ -3,349 +3,721 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>webgen — website generation</title>
+<title>webgen — professional websites from your brief</title>
 <style>
   :root {
-    --accent:#4f46e5; --accent-dark:#4338ca; --accent-soft:#eef2ff;
-    --ink:#0f172a; --body:#334155; --muted:#64748b; --line:#e5e7eb;
-    --bg:#f7f8fa; --card:#ffffff;
-    --shadow:0 1px 2px rgba(15,23,42,.04), 0 8px 24px rgba(15,23,42,.06);
-    --radius:16px;
+    --ink:#1d1d1f; --body:#6e6e73; --muted:#86868b;
+    --bg:#ffffff; --bg-alt:#f5f5f7; --line:#d2d2d7;
+    --dark:#0a0a0b; --dark-2:#141417; --on-dark:#f5f5f7; --on-dark-mut:#a1a1a6;
+    --accent:#0071e3; --accent-dark:#0077ed;
+    --radius:18px; --radius-lg:28px;
+    --shadow:0 4px 30px rgba(0,0,0,.08);
+    --maxw:980px;
   }
   * { box-sizing:border-box; }
-  body { margin:0; color:var(--body); background:var(--bg);
-         font:16px/1.65 -apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-         -webkit-font-smoothing:antialiased; }
-  h1,h2,h3 { color:var(--ink); line-height:1.2; }
-  .wrap { max-width:1040px; margin:0 auto; padding:0 24px; }
+  html { scroll-behavior:smooth; }
+  body { margin:0; color:var(--ink); background:var(--bg); letter-spacing:-.01em;
+         font:17px/1.47 "SF Pro Text",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+         -webkit-font-smoothing:antialiased; overflow-x:hidden; }
+  h1,h2,h3 { color:inherit; line-height:1.06; letter-spacing:-.03em; font-weight:600; margin:0; }
+  a { color:var(--accent); text-decoration:none; }
+  a:hover { text-decoration:underline; }
+  .wrap { max-width:var(--maxw); margin:0 auto; padding:0 22px; }
 
-  /* top bar */
-  .topbar { background:rgba(255,255,255,.85); backdrop-filter:blur(10px);
-            border-bottom:1px solid var(--line); position:sticky; top:0; z-index:20; }
-  .topbar .wrap { display:flex; align-items:center; justify-content:space-between;
-                  height:64px; }
-  .logo { display:flex; align-items:center; gap:10px; font-weight:700; color:var(--ink);
-          font-size:18px; letter-spacing:-.01em; }
-  .logo .mark { width:28px; height:28px; border-radius:8px;
-                background:linear-gradient(135deg,var(--accent),#8b5cf6);
-                box-shadow:0 2px 8px rgba(79,70,229,.4); }
-  .langbox { font-size:14px; color:var(--muted); display:flex; align-items:center; gap:8px; }
-  .langbox select { font:inherit; padding:7px 10px; border:1px solid var(--line);
-                    border-radius:9px; background:#fff; color:var(--ink); cursor:pointer; }
+  /* top bar — thin, frosted */
+  .topbar { background:rgba(255,255,255,.72); backdrop-filter:saturate(180%) blur(20px);
+            border-bottom:1px solid rgba(0,0,0,.07); position:fixed; top:0; left:0; right:0; z-index:50; }
+  .topbar .wrap { display:flex; align-items:center; justify-content:space-between; height:48px; }
+  .logo { display:flex; align-items:center; gap:9px; font-weight:600; color:var(--ink);
+          font-size:18px; letter-spacing:-.02em; cursor:pointer; }
+  .logo .mark { width:24px; height:24px; border-radius:7px;
+                background:linear-gradient(135deg,#0071e3,#42a5ff); }
+  .topnav { display:flex; align-items:center; gap:16px; }
+  .langbox { font-size:13px; color:var(--muted); display:flex; align-items:center; gap:7px; }
+  .langbox select { font:inherit; padding:5px 8px; border:1px solid var(--line);
+                    border-radius:8px; background:rgba(255,255,255,.6); color:var(--ink); cursor:pointer; }
+  .nav-cta { font-size:14px; font-weight:500; color:#fff; background:var(--accent);
+             border:none; border-radius:980px; padding:7px 16px; cursor:pointer; }
+  .nav-cta:hover { background:var(--accent-dark); }
+
+  /* buttons */
+  .btn { background:var(--accent); color:#fff; border:none; border-radius:980px;
+         padding:12px 26px; font:inherit; font-size:17px; font-weight:400; cursor:pointer;
+         transition:background .2s, transform .08s; }
+  .btn:hover { background:var(--accent-dark); }
+  .btn:active { transform:scale(.98); }
+  .btn:disabled { opacity:.5; cursor:default; }
+  .btn.big { padding:15px 34px; font-size:19px; }
+  .btn.ghost { background:transparent; color:var(--accent); padding:12px 8px; }
+  .btn.ghost:hover { background:transparent; text-decoration:underline; }
+  .linkarrow { color:var(--accent); font-size:18px; cursor:pointer; background:none; border:none;
+               font:inherit; padding:0; }
+  .linkarrow:hover { text-decoration:underline; }
+
+  /* ===== LANDING ===== */
+  .lp section { position:relative; }
 
   /* hero */
-  .hero { text-align:center; padding:60px 24px 8px; }
-  .hero h1 { font-size:40px; letter-spacing:-.02em; margin:0 auto; max-width:18ch; }
-  .hero p { color:var(--muted); font-size:18px; max-width:56ch; margin:16px auto 0; }
+  .lp-hero { position:relative; min-height:100vh; display:flex; flex-direction:column;
+             align-items:center; justify-content:center; text-align:center;
+             padding:104px 22px 140px; overflow:hidden; background:#ffffff; }
+  .lp-hero .hero-inner { position:relative; z-index:2; }
+  .lp-hero h1 { font-size:clamp(36px,6.2vw,80px); max-width:16ch; letter-spacing:-.035em; line-height:1.04; }
+  .lp-hero .lead { color:var(--body); font-size:clamp(19px,2.5vw,27px); font-weight:400;
+                   max-width:32ch; margin:22px auto 0; line-height:1.25; letter-spacing:-.015em; }
+  .lp-hero .cta-row { display:flex; gap:26px; align-items:center; justify-content:center;
+                      flex-wrap:wrap; margin-top:38px; }
 
-  /* stepper */
-  .stepper { display:flex; align-items:center; justify-content:center; gap:8px;
-             margin:34px auto 30px; flex-wrap:wrap; }
-  .stepper .s { display:flex; align-items:center; gap:9px; color:var(--muted);
-                font-size:14px; font-weight:600; }
-  .stepper .n { width:26px; height:26px; border-radius:50%; border:2px solid var(--line);
-                display:grid; place-items:center; font-size:13px; background:#fff; }
+  /* hero background — drifting gradient orbs + faint dot grid */
+  .lp-hero .bg { position:absolute; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
+  .lp-hero .bg::after { content:""; position:absolute; inset:0;
+        background-image:radial-gradient(rgba(20,30,60,.06) 1px, transparent 1.4px); background-size:30px 30px;
+        -webkit-mask-image:radial-gradient(circle at 50% 38%, #000 0%, transparent 68%);
+        mask-image:radial-gradient(circle at 50% 38%, #000 0%, transparent 68%); }
+  .orb { position:absolute; border-radius:50%; filter:blur(72px); opacity:.5; will-change:transform; }
+  .orb.a { width:560px; height:560px; top:-160px; left:-120px;
+           background:radial-gradient(circle at 30% 30%, #8fb8ff, transparent 70%); animation:drift1 19s ease-in-out infinite; }
+  .orb.b { width:520px; height:520px; top:-30px; right:-150px;
+           background:radial-gradient(circle at 60% 40%, #c9b3ff, transparent 70%); animation:drift2 23s ease-in-out infinite; }
+  .orb.c { width:600px; height:600px; bottom:-240px; left:34%;
+           background:radial-gradient(circle at 50% 50%, #93e6ff, transparent 70%); animation:drift3 27s ease-in-out infinite; }
+  @keyframes drift1 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(42px,32px)} }
+  @keyframes drift2 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-52px,40px)} }
+  @keyframes drift3 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(30px,-44px)} }
+
+  /* scroll cue — animated mouse + label, clickable */
+  .scroll-cue { position:absolute; bottom:26px; left:50%; transform:translateX(-50%); z-index:2;
+                display:flex; flex-direction:column; align-items:center; gap:9px; cursor:pointer;
+                background:none; border:none; padding:6px; }
+  .scroll-cue .mouse { width:26px; height:42px; border:2px solid var(--muted); border-radius:14px;
+                       position:relative; opacity:.85; transition:border-color .2s; }
+  .scroll-cue .mouse::after { content:""; position:absolute; top:7px; left:50%; width:4px; height:8px;
+        border-radius:3px; background:var(--muted); transform:translateX(-50%);
+        animation:wheel 1.7s cubic-bezier(.45,0,.2,1) infinite; }
+  .scroll-cue .label { font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--muted);
+                       transition:color .2s; }
+  .scroll-cue:hover .mouse { border-color:var(--accent); }
+  .scroll-cue:hover .label { color:var(--accent); }
+  @keyframes wheel { 0%{opacity:0;transform:translate(-50%,0)} 25%{opacity:1}
+                     75%{opacity:1;transform:translate(-50%,13px)} 100%{opacity:0;transform:translate(-50%,15px)} }
+
+  /* stats (dark) */
+  .lp-stats { position:relative; overflow:hidden; background:var(--dark); color:var(--on-dark); padding:54px 22px; }
+  .lp-stats::before { content:""; position:absolute; inset:0; z-index:0;
+        background:radial-gradient(640px 260px at 18% 0%, rgba(0,113,227,.30), transparent 62%),
+                   radial-gradient(560px 260px at 92% 112%, rgba(124,58,237,.26), transparent 60%); }
+  .stats-grid { position:relative; z-index:1; max-width:1080px; margin:0 auto;
+                display:grid; grid-template-columns:repeat(4,1fr); gap:24px; }
+  .stat { text-align:center; }
+  .stat .n { font-size:clamp(32px,4.2vw,50px); font-weight:600; letter-spacing:-.03em;
+             background:linear-gradient(180deg,#fff,#9bbcff); -webkit-background-clip:text;
+             background-clip:text; -webkit-text-fill-color:transparent; }
+  .stat .l { color:var(--on-dark-mut); font-size:16px; margin-top:8px; }
+
+  /* how it works (plain 1-2-3) */
+  .lp-how { background:var(--bg); padding:100px 22px; text-align:center; }
+  .lp-how h2 { font-size:clamp(30px,4.5vw,52px); letter-spacing:-.03em; }
+  .how-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:30px; max-width:1000px; margin:50px auto 0; }
+  .how-step .num { width:62px; height:62px; border-radius:50%; display:grid; place-items:center;
+                   margin:0 auto 18px; font-size:27px; font-weight:600; color:#fff;
+                   background:linear-gradient(135deg,#0071e3,#42a5ff); box-shadow:0 8px 22px rgba(0,113,227,.3); }
+  .how-step h3 { font-size:22px; margin-bottom:8px; }
+  .how-step p { color:var(--body); font-size:17px; margin:0 auto; max-width:28ch; }
+
+  /* reassurance line under the Start buttons */
+  .reassure { color:var(--muted); font-size:15px; margin:18px auto 0; max-width:46ch; }
+
+  /* showcase (dark, vertical stack) */
+  .lp-showcase { position:relative; overflow:hidden; background:var(--dark-2); color:var(--on-dark); }
+  .lp-showcase::before { content:""; position:absolute; top:-80px; left:50%; transform:translateX(-50%);
+        width:900px; height:520px; z-index:0;
+        background:radial-gradient(circle, rgba(0,194,255,.20), transparent 65%); }
+  .showcase-head { position:relative; z-index:1; text-align:center; padding:110px 22px 0; }
+  .showcase-head h2 { font-size:clamp(30px,4.5vw,52px); letter-spacing:-.03em; }
+  .showcase-view { position:relative; z-index:1; padding:48px 22px 110px; }
+  .showcase-track { display:flex; flex-direction:column; gap:22px; max-width:680px; margin:0 auto; }
+  .sc-card { border-radius:var(--radius-lg); padding:40px 40px 44px; color:#fff;
+             box-shadow:0 20px 60px rgba(0,0,0,.4); will-change:transform; }
+  .sc-card:nth-child(1){ background:linear-gradient(150deg,#0071e3,#00c2ff); }
+  .sc-card:nth-child(2){ background:linear-gradient(150deg,#7c3aed,#db2777); }
+  .sc-card:nth-child(3){ background:linear-gradient(150deg,#059669,#34d399); }
+  .sc-card:nth-child(4){ background:linear-gradient(150deg,#ea580c,#f59e0b); }
+  .sc-card h3 { font-size:28px; letter-spacing:-.02em; }
+  .sc-card p { font-size:17px; margin:10px 0 0; opacity:.92; }
+
+  /* closing cta (light) */
+  .lp-cta { position:relative; overflow:hidden; background:var(--bg); padding:120px 22px 64px; text-align:center; }
+  .lp-cta::before { content:""; position:absolute; inset:0; z-index:0;
+        background:radial-gradient(720px 420px at 50% 28%, #e9f1ff, transparent 66%); }
+  .lp-cta > * { position:relative; z-index:1; }
+  .lp-cta h2 { font-size:clamp(34px,5.5vw,68px); letter-spacing:-.04em; max-width:16ch; margin:0 auto; }
+  .lp-cta p { color:var(--body); font-size:clamp(18px,2.2vw,24px); max-width:40ch; margin:22px auto 38px; }
+
+  /* ===== FUNNEL (brief / contact / done) ===== */
+  .stepper { display:flex; align-items:center; justify-content:center; gap:10px;
+             margin:84px auto 6px; flex-wrap:wrap; }
+  .stepper.hidden { display:none; }
+  .stepper .s { display:flex; align-items:center; gap:9px; color:var(--muted); font-size:14px; font-weight:500; }
+  .stepper .n { width:27px; height:27px; border-radius:50%; border:1.5px solid var(--line);
+                display:grid; place-items:center; font-size:13px; background:#fff; transition:all .2s; }
   .stepper .s.active { color:var(--ink); }
-  .stepper .s.active .n { border-color:var(--accent); color:var(--accent);
-                          background:var(--accent-soft); }
+  .stepper .s.active .n { border-color:var(--accent); color:var(--accent); }
   .stepper .s.done .n { background:var(--accent); border-color:var(--accent); color:#fff; }
-  .stepper .bar { width:34px; height:2px; background:var(--line); }
+  .stepper .bar { width:40px; height:2px; background:var(--line); }
 
-  main { padding:0 24px 72px; }
-  .card { background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
-          padding:32px; margin:0 auto; max-width:680px; box-shadow:var(--shadow); }
-  .card > h2 { font-size:22px; margin:0; letter-spacing:-.01em; }
-  .card > .sub { color:var(--muted); margin-top:6px; font-size:15px; }
+  .funnel { padding:0 22px; }
+  /* Bottom breathing room only when a funnel step is active — so the homepage
+     (where every funnel step is hidden) has no blank gap before the footer. */
+  .funnel .step.on { padding-bottom:88px; }
+  .card { background:#fff; border-radius:var(--radius-lg); padding:44px 46px; margin:28px auto 0;
+          max-width:660px; box-shadow:var(--shadow); }
+  .card > h2 { font-size:28px; }
+  .card > .sub { color:var(--body); margin-top:8px; font-size:17px; }
 
-  label { display:block; font-weight:600; color:var(--ink); margin:22px 0 7px; font-size:15px; }
+  /* brief wizard — chaptered, one question at a time */
+  .wiz-chapters { display:flex; gap:8px; margin-bottom:10px; }
+  .chapseg { flex:1; height:6px; background:var(--line); border-radius:999px; overflow:hidden; }
+  .chapseg > span { display:block; height:100%; width:0; background:var(--accent);
+                    border-radius:999px; transition:width .4s cubic-bezier(.4,0,.2,1); }
+  .wiz-section { color:var(--accent); font-size:13px; font-weight:600; letter-spacing:.06em;
+                 text-transform:uppercase; min-height:16px; }
+  .qslide { display:none; }
+  .qslide.on { display:block; animation:qfade .35s ease; }
+  #brief-form .qslide label { font-size:20px; font-weight:600; margin:14px 0 16px; }
+  @keyframes qfade { from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:none} }
+
+  /* chapter divider slide */
+  .qslide.intro { text-align:center; padding:30px 0 16px; }
+  .qslide.intro .chapnum { color:var(--accent); font-size:13px; font-weight:700; letter-spacing:.14em; }
+  .qslide.intro .chaptitle { font-size:clamp(30px,5vw,42px); letter-spacing:-.03em; margin:14px 0 12px; }
+  .qslide.intro .chapsub { color:var(--body); font-size:18px; max-width:32ch; margin:0 auto; line-height:1.4; }
+
+  /* big tappable choice cards (single = round tick, multi = square tick) */
+  .opts { display:flex; flex-direction:column; gap:12px; margin-top:6px; }
+  .opt { display:flex; align-items:center; gap:14px; width:100%; text-align:left;
+         padding:16px 18px; border:1.5px solid var(--line); border-radius:14px; background:#fff;
+         font:inherit; font-size:17px; color:var(--ink); cursor:pointer;
+         transition:border-color .15s, background .15s; }
+  .opt:hover { border-color:var(--muted); }
+  .opt.on { border-color:var(--accent); background:rgba(0,113,227,.06); }
+  .opt .tick { flex:0 0 auto; width:24px; height:24px; border:2px solid var(--line);
+               border-radius:50%; position:relative; transition:all .15s; }
+  .opt.multi .tick { border-radius:7px; }
+  .opt.on .tick { border-color:var(--accent); background:var(--accent); }
+  .opt.on .tick::after { content:""; position:absolute; left:8px; top:4px; width:5px; height:10px;
+        border:solid #fff; border-width:0 2px 2px 0; transform:rotate(45deg); }
+
+  label { display:block; font-weight:500; color:var(--ink); margin:26px 0 8px; font-size:15px; }
   .hint { font-weight:400; color:var(--muted); font-size:13px; }
-  input[type=text], select, textarea {
-    width:100%; padding:12px 14px; border:1px solid var(--line); border-radius:11px;
-    font:inherit; background:#fff; color:var(--ink); transition:border-color .15s, box-shadow .15s; }
-  input[type=text]:focus, select:focus, textarea:focus { outline:none;
-    border-color:var(--accent); box-shadow:0 0 0 4px var(--accent-soft); }
-  input[type=color] { width:54px; height:40px; padding:3px; border:1px solid var(--line);
-    border-radius:10px; background:#fff; cursor:pointer; }
-  textarea { resize:vertical; min-height:86px; }
-  .chips { display:flex; flex-wrap:wrap; gap:9px; margin-top:7px; }
-  .chip { padding:9px 15px; border:1px solid var(--line); border-radius:999px; cursor:pointer;
-          user-select:none; background:#fff; font-size:14px; transition:all .12s; }
-  .chip:hover { border-color:#cbd5e1; }
+  input[type=text], input[type=email], input[type=tel], select, textarea {
+    width:100%; padding:13px 16px; border:1px solid var(--line); border-radius:12px;
+    font:inherit; font-size:17px; background:#fff; color:var(--ink);
+    transition:border-color .15s, box-shadow .15s; }
+  input:focus, select:focus, textarea:focus { outline:none;
+    border-color:var(--accent); box-shadow:0 0 0 4px rgba(0,113,227,.15); }
+  input[type=color] { width:56px; height:44px; padding:3px; border:1px solid var(--line);
+    border-radius:11px; background:#fff; cursor:pointer; }
+  textarea { resize:vertical; min-height:96px; }
+  .chips { display:flex; flex-wrap:wrap; gap:10px; margin-top:8px; }
+  .chip { padding:9px 17px; border:1px solid var(--line); border-radius:980px; cursor:pointer;
+          user-select:none; background:#fff; font-size:15px; transition:all .15s; }
+  .chip:hover { border-color:var(--muted); }
   .chip.on { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .actions { display:flex; gap:14px; margin-top:34px; align-items:center; }
+  .spacer { flex:1; }
+  .err { color:#d70015; margin-top:16px; font-size:15px; }
+  .done-card { text-align:center; }
+  .done-card .check { width:72px; height:72px; border-radius:50%; margin:6px auto 22px;
+                      background:linear-gradient(135deg,#0071e3,#42a5ff); display:grid; place-items:center; }
+  .done-card .check::after { content:""; width:20px; height:34px; border:solid #fff;
+                      border-width:0 4px 4px 0; transform:rotate(45deg); margin-top:-8px; }
 
-  .btn { background:var(--accent); color:#fff; border:none; border-radius:11px;
-         padding:14px 26px; font:inherit; font-weight:600; cursor:pointer; margin-top:28px;
-         box-shadow:0 2px 8px rgba(79,70,229,.25); transition:background .15s, transform .05s; }
-  .btn:hover { background:var(--accent-dark); }
-  .btn:active { transform:translateY(1px); }
-  .btn:disabled { opacity:.55; cursor:default; box-shadow:none; }
-  .err { color:#b91c1c; margin-top:14px; font-size:14px; }
-
-  /* work */
-  .tasks { list-style:none; padding:0; margin:22px 0 0; }
-  .tasks li { display:flex; align-items:center; gap:13px; padding:10px 0; color:var(--muted);
-              border-top:1px solid #f1f5f9; }
-  .tasks li:first-child { border-top:0; }
-  .tasks li.done { color:var(--ink); }
-  .tasks li.running { color:var(--ink); font-weight:500; }
-  .dot { width:18px; height:18px; border-radius:50%; border:2px solid var(--line); flex:0 0 auto; }
-  .tasks li.running .dot { border-color:var(--accent); border-top-color:transparent;
-                           animation:spin .8s linear infinite; }
-  .tasks li.done .dot { background:var(--accent); border-color:var(--accent); position:relative; }
-  .tasks li.done .dot::after { content:""; position:absolute; left:5px; top:2px; width:4px;
-    height:8px; border:solid #fff; border-width:0 2px 2px 0; transform:rotate(45deg); }
-  @keyframes spin { to { transform:rotate(360deg); } }
-  .engine { font-size:12px; color:#94a3b8; margin-top:14px; }
-
-  /* pick */
-  .pick-head { text-align:center; margin-bottom:26px; }
-  .pick-head h2 { font-size:26px; letter-spacing:-.01em; margin:0; }
-  .pick-head .sub { color:var(--muted); margin-top:8px; }
-  .variants { display:flex; flex-direction:column; gap:28px; max-width:940px; margin:0 auto; }
-  .variant { background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
-             overflow:hidden; box-shadow:var(--shadow); transition:box-shadow .15s, border-color .15s; }
-  .variant.sel { border-color:var(--accent); box-shadow:0 0 0 2px var(--accent), var(--shadow); }
-  .vhead { padding:18px 18px 0; display:flex; align-items:center; justify-content:space-between; gap:10px; }
-  .vhead h3 { margin:0; font-size:17px; }
-  .badge { font-size:12px; font-weight:600; color:var(--accent); background:var(--accent-soft);
-           padding:4px 10px; border-radius:999px; display:none; }
-  .variant.sel .badge { display:inline-block; }
-  .variant .blurb { padding:4px 18px 14px; color:var(--muted); font-size:13.5px; }
-  .pagebar { display:flex; gap:7px; padding:0 18px 12px; flex-wrap:wrap; }
-  .pagebar button { border:1px solid var(--line); background:#fff; border-radius:8px;
-           padding:5px 11px; font-size:13px; cursor:pointer; color:var(--muted); }
-  .pagebar button.on { color:var(--accent); border-color:var(--accent); background:var(--accent-soft); }
-  .frame { height:680px; border:0; border-top:1px solid var(--line); border-bottom:1px solid var(--line);
-           width:100%; background:#fff; transition:height .2s; }
-  .variant.big .frame { height:88vh; }
-  .pagebar .expand { margin-left:auto; }
-  .vbtns { display:flex; gap:9px; padding:14px 18px; }
-  .vbtns a, .vbtns button { flex:1; text-align:center; text-decoration:none; border-radius:10px;
-           padding:10px; font:inherit; font-size:14px; font-weight:600; cursor:pointer;
-           border:1px solid var(--line); background:#fff; color:var(--ink); transition:all .12s; }
-  .vbtns a:hover, .vbtns .ghost:hover { border-color:#cbd5e1; background:#f8fafc; }
-  .vbtns .pick { background:var(--accent); color:#fff; border-color:var(--accent); }
-  .vbtns .pick:hover { background:var(--accent-dark); }
-
-  footer.app { text-align:center; color:var(--muted); font-size:13px; padding:28px 24px 40px;
-               border-top:1px solid var(--line); }
+  footer.app { text-align:center; color:var(--muted); font-size:13px; padding:30px 22px;
+               background:var(--bg-alt); border-top:1px solid var(--line); }
 
   .step { display:none; }
   .step.on { display:block; }
-  @media (max-width:560px) { .hero h1 { font-size:30px; } .stepper .bar { width:18px; } }
+  @media (max-width:760px) {
+    .stats-grid { grid-template-columns:repeat(2,1fr); gap:40px 20px; }
+    .how-grid { grid-template-columns:1fr; gap:44px; }
+    .card { padding:32px 24px; }
+  }
+  @media (prefers-reduced-motion:reduce){ html{scroll-behavior:auto;} .scroll-cue::after{animation:none;} }
 </style>
 </head>
 <body>
 <div class="topbar"><div class="wrap">
-  <div class="logo"><span class="mark"></span>webgen</div>
-  <div class="langbox"><span id="lang-label"></span><select id="lang"></select></div>
+  <div class="logo" id="logo"><span class="mark"></span>webgen</div>
+  <div class="topnav">
+    <div class="langbox"><span id="lang-label"></span><select id="lang"></select></div>
+    <button class="nav-cta" id="nav-cta"></button>
+  </div>
 </div></div>
 
-<section class="hero">
-  <h1 id="hero-title"></h1>
-  <p id="app-sub"></p>
-</section>
-
-<div class="stepper" id="stepper">
+<div class="stepper hidden" id="stepper">
   <div class="s" data-step="1"><span class="n">1</span><span id="step-brief"></span></div>
   <div class="bar"></div>
-  <div class="s" data-step="2"><span class="n">2</span><span id="step-generate"></span></div>
+  <div class="s" data-step="2"><span class="n">2</span><span id="step-contact"></span></div>
   <div class="bar"></div>
-  <div class="s" data-step="3"><span class="n">3</span><span id="step-choose"></span></div>
+  <div class="s" data-step="3"><span class="n">3</span><span id="step-done"></span></div>
 </div>
 
-<main>
-  <section id="form-step" class="step on">
+<!-- ===================== LANDING (home) ===================== -->
+<div id="home-step" class="step on lp">
+  <!-- Hero -->
+  <section class="lp-hero">
+    <div class="bg" aria-hidden="true">
+      <span class="orb a"></span><span class="orb b"></span><span class="orb c"></span>
+    </div>
+    <div class="hero-inner">
+      <h1 id="hero-title"></h1>
+      <p class="lead" id="app-sub"></p>
+      <div class="cta-row">
+        <button class="btn big" id="home-cta"></button>
+        <button class="linkarrow" id="see-how"></button>
+      </div>
+      <p class="reassure" id="reassure-1"></p>
+    </div>
+    <button class="scroll-cue" id="scroll-cue-btn" aria-label="Scroll down">
+      <span class="mouse"></span>
+      <span class="label" id="scroll-cue"></span>
+    </button>
+  </section>
+
+  <!-- How it works (plain 1-2-3) -->
+  <section class="lp-how" id="how">
+    <h2 id="how-title"></h2>
+    <div class="how-grid">
+      <div class="how-step"><div class="num">1</div><h3 id="how-1-t"></h3><p id="how-1-d"></p></div>
+      <div class="how-step"><div class="num">2</div><h3 id="how-2-t"></h3><p id="how-2-d"></p></div>
+      <div class="how-step"><div class="num">3</div><h3 id="how-3-t"></h3><p id="how-3-d"></p></div>
+    </div>
+  </section>
+
+  <!-- Showcase -->
+  <section class="lp-showcase">
+    <div class="showcase-head"><h2 id="show-title"></h2></div>
+    <div class="showcase-view">
+      <div class="showcase-track">
+        <div class="sc-card"><h3 id="show-1-t"></h3><p id="show-1-d"></p></div>
+        <div class="sc-card"><h3 id="show-2-t"></h3><p id="show-2-d"></p></div>
+        <div class="sc-card"><h3 id="show-3-t"></h3><p id="show-3-d"></p></div>
+        <div class="sc-card"><h3 id="show-4-t"></h3><p id="show-4-d"></p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Closing CTA -->
+  <section class="lp-cta">
+    <h2 id="cta-title"></h2>
+    <p id="cta-sub"></p>
+    <button class="btn big" id="home-cta-2"></button>
+  </section>
+
+  <!-- Stats (dark) — at the very bottom -->
+  <section class="lp-stats" id="stats">
+    <div class="stats-grid">
+      <div class="stat"><div class="n" id="stat-1-n"></div><div class="l" id="stat-1-l"></div></div>
+      <div class="stat"><div class="n" id="stat-2-n"></div><div class="l" id="stat-2-l"></div></div>
+      <div class="stat"><div class="n" id="stat-3-n"></div><div class="l" id="stat-3-l"></div></div>
+      <div class="stat"><div class="n" id="stat-4-n"></div><div class="l" id="stat-4-l"></div></div>
+    </div>
+  </section>
+</div>
+
+<!-- ===================== FUNNEL ===================== -->
+<main class="funnel">
+  <section id="brief-step" class="step">
     <div class="card">
-      <h2 id="form-title"></h2>
-      <div class="sub" id="form-sub"></div>
+      <div class="wiz-chapters" id="wiz-chapters"></div>
+      <div class="wiz-section" id="wiz-section"></div>
       <form id="brief-form"></form>
       <div class="err" id="form-err"></div>
-      <button class="btn" id="go"></button>
+      <div class="actions">
+        <button class="btn ghost" id="brief-back"></button>
+        <span class="spacer"></span>
+        <button class="btn" id="brief-next"></button>
+      </div>
     </div>
   </section>
 
-  <section id="work-step" class="step">
+  <section id="contact-step" class="step">
     <div class="card">
-      <h2 id="work-title"></h2>
-      <div class="sub" id="work-sub"></div>
-      <ul class="tasks" id="tasks"></ul>
-      <div class="engine" id="engine"></div>
+      <h2 id="contact-title"></h2>
+      <div class="sub" id="contact-sub"></div>
+      <form id="contact-form">
+        <label id="l-cname"></label>
+        <input type="text" id="c_name" autocomplete="name">
+        <label id="l-cemail"></label>
+        <input type="email" id="c_email" autocomplete="email">
+        <label id="l-cphone"></label>
+        <input type="tel" id="c_phone" autocomplete="tel">
+        <label id="l-cmsg"></label>
+        <textarea id="c_message"></textarea>
+      </form>
+      <div class="err" id="contact-err"></div>
+      <div class="actions">
+        <button class="btn ghost" id="contact-back"></button>
+        <span class="spacer"></span>
+        <button class="btn" id="submit"></button>
+      </div>
     </div>
   </section>
 
-  <section id="pick-step" class="step">
-    <div class="pick-head">
-      <h2 id="pick-title"></h2>
-      <div class="sub" id="pick-sub"></div>
+  <section id="done-step" class="step">
+    <div class="card done-card">
+      <div class="check"></div>
+      <h2 id="thanks-title"></h2>
+      <div class="sub" id="thanks-sub"></div>
+      <div class="actions" style="justify-content:center;">
+        <button class="btn ghost" id="restart"></button>
+      </div>
     </div>
-    <div class="variants" id="variants"></div>
   </section>
 </main>
 
 <footer class="app" id="app-footer"></footer>
 
+<!-- GSAP + ScrollTrigger + Lenis (CDN; landing degrades gracefully if absent) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
 <script>
 const $ = (s) => document.querySelector(s);
 let SCHEMA = [], UI = {}, LANG = 'en';
-const multi = {};
+const multi = {};      // multiselect state: qid -> Set(values)
+const single = {};     // select state: qid -> value
+let groups = [];       // ordered unique question groups
+let chapters = [];     // [{key,title,sub}] top-level chapters
+let curStep = 'home';
+let lenis = null, scrollReady = false;
 
-function showStep(id, stepNo) {
+const STEP_NO = { home: 0, brief: 1, contact: 2, done: 3 };
+
+function show(name) {
+  curStep = name;
   document.querySelectorAll('.step').forEach(e => e.classList.remove('on'));
-  $(id).classList.add('on');
-  setStepper(stepNo);
-}
-function setStepper(n) {
+  $('#' + name + '-step').classList.add('on');
+  const n = STEP_NO[name];
+  $('#stepper').classList.toggle('hidden', n === 0);
   document.querySelectorAll('.stepper .s').forEach(s => {
     const step = +s.dataset.step;
     s.classList.toggle('active', step === n);
-    s.classList.toggle('done', step < n);
+    s.classList.toggle('done', step < n || name === 'done');
   });
+  scrollTop();
+  // Landing has pinned ScrollTriggers; recompute when it re-enters the layout.
+  if (window.ScrollTrigger) requestAnimationFrame(() => ScrollTrigger.refresh());
+}
+
+function scrollTop() {
+  if (lenis) lenis.scrollTo(0, { immediate: true });
+  window.scrollTo(0, 0);
 }
 
 function applyUI() {
   document.documentElement.lang = LANG;
-  $('#hero-title').textContent = UI.hero_title;
-  $('#app-sub').textContent = UI.app_sub;
-  $('#step-brief').textContent = UI.step_brief;
-  $('#step-generate').textContent = UI.step_generate;
-  $('#step-choose').textContent = UI.step_choose;
-  $('#form-title').textContent = UI.form_title;
-  $('#form-sub').textContent = UI.form_sub;
-  $('#go').textContent = UI.generate_btn;
-  $('#work-title').textContent = UI.work_title;
-  $('#work-sub').textContent = UI.work_sub;
-  $('#pick-title').textContent = UI.pick_title;
-  $('#pick-sub').textContent = UI.pick_sub;
-  $('#lang-label').textContent = UI.lang_label;
-  $('#app-footer').textContent = UI.app_footer;
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  // landing — hero
+  set('hero-title', UI.hero_title); set('app-sub', UI.app_sub);
+  set('home-cta', UI.home_cta); set('home-cta-2', UI.home_cta);
+  set('see-how', UI.see_how); set('scroll-cue', UI.scroll_cue);
+  set('nav-cta', UI.nav_start);
+  set('reassure-1', UI.reassure);
+  // how it works
+  set('how-title', UI.how_title);
+  for (let i = 1; i <= 3; i++) { set('how-'+i+'-t', UI['how_'+i+'_t']); set('how-'+i+'-d', UI['how_'+i+'_d']); }
+  // stats
+  for (let i = 1; i <= 4; i++) { set('stat-'+i+'-n', UI['stat_'+i+'_n']); set('stat-'+i+'-l', UI['stat_'+i+'_l']); }
+  // showcase
+  set('show-title', UI.show_title);
+  for (let i = 1; i <= 4; i++) { set('show-'+i+'-t', UI['show_'+i+'_t']); set('show-'+i+'-d', UI['show_'+i+'_d']); }
+  // cta
+  set('cta-title', UI.cta_title); set('cta-sub', UI.cta_sub);
+  // stepper
+  set('step-brief', UI.step_brief); set('step-contact', UI.step_contact); set('step-done', UI.step_done);
+  // brief (one-question-at-a-time wizard)
+  set('brief-back', UI.back_btn); set('brief-next', UI.continue_btn);
+  // contact
+  set('contact-title', UI.contact_title); set('contact-sub', UI.contact_sub);
+  set('l-cname', UI.contact_name); set('l-cemail', UI.contact_email);
+  $('#l-cphone').innerHTML = UI.contact_phone + ` <span class="hint">(${UI.optional})</span>`;
+  $('#l-cmsg').innerHTML = UI.contact_message + ` <span class="hint">(${UI.optional})</span>`;
+  $('#c_name').placeholder = UI.contact_name_ph; $('#c_email').placeholder = UI.contact_email_ph;
+  $('#c_phone').placeholder = UI.contact_phone_ph; $('#c_message').placeholder = UI.contact_message_ph;
+  set('contact-back', UI.back_btn); set('submit', UI.submit_btn);
+  // thanks + chrome
+  set('thanks-title', UI.thanks_title); set('thanks-sub', UI.thanks_sub); set('restart', UI.thanks_back);
+  set('lang-label', UI.lang_label); set('app-footer', UI.app_footer);
 }
 
-async function loadSchema(lang) {
+async function loadSchema(lang, first) {
   const r = await fetch('/api/schema?lang=' + encodeURIComponent(lang || ''));
   const data = await r.json();
-  LANG = data.lang; UI = data.ui; SCHEMA = data.questions;
+  LANG = data.lang; UI = data.ui; SCHEMA = data.questions; chapters = data.chapters || [];
   applyUI();
   buildLangSelect(data.languages);
   buildForm();
-  setStepper(1);
+  if (first) { show('home'); initScroll(); }
+  else { show(curStep); if (window.ScrollTrigger) requestAnimationFrame(() => ScrollTrigger.refresh()); }
 }
 
 function buildLangSelect(languages) {
   const sel = $('#lang');
   sel.innerHTML = Object.entries(languages)
     .map(([code, name]) => `<option value="${code}" ${code===LANG?'selected':''}>${name}</option>`).join('');
-  sel.onchange = () => loadSchema(sel.value);
+  sel.onchange = () => loadSchema(sel.value, false);
+}
+
+function questionHTML(q) {
+  const opt = q.required ? '' : ` <span class="hint">(${UI.optional})</span>`;
+  const lbl = `<label>${q.label}${opt}</label>`;
+  if (q.type === 'text')
+    return lbl + `<input type="text" id="f_${q.id}" placeholder="${q.placeholder||''}" value="${q.default||''}">`;
+  if (q.type === 'textarea')
+    return lbl + `<textarea id="f_${q.id}" placeholder="${q.placeholder||''}">${q.default||''}</textarea>`;
+  if (q.type === 'select') {
+    single[q.id] = q.default || '';
+    const opts = q.options.map(o =>
+      `<button type="button" class="opt ${o.value===single[q.id]?'on':''}" data-q="${q.id}" data-v="${o.value}"><span class="tick"></span><span>${o.label}</span></button>`).join('');
+    return lbl + `<div class="opts">${opts}</div>`;
+  }
+  if (q.type === 'multiselect') {
+    const def = new Set(q.default || []); multi[q.id] = def;
+    const opts = q.options.map(o =>
+      `<button type="button" class="opt multi ${def.has(o.value)?'on':''}" data-q="${q.id}" data-o="${o.value}"><span class="tick"></span><span>${o.label}</span></button>`).join('');
+    return lbl + `<div class="opts">${opts}</div>`;
+  }
+  return '';
 }
 
 function buildForm() {
   const form = $('#brief-form');
   form.innerHTML = '';
   for (const k of Object.keys(multi)) delete multi[k];
-  for (const q of SCHEMA) {
-    const wrap = document.createElement('div');
-    const opt = q.required ? '' : ` <span class="hint">(${UI.optional})</span>`;
-    const lbl = `<label>${q.label}${opt}</label>`;
-    if (q.type === 'text') {
-      wrap.innerHTML = lbl + `<input type="text" id="f_${q.id}" placeholder="${q.placeholder||''}" value="${q.default||''}">`;
-    } else if (q.type === 'textarea') {
-      wrap.innerHTML = lbl + `<textarea id="f_${q.id}" placeholder="${q.placeholder||''}">${q.default||''}</textarea>`;
-    } else if (q.type === 'color') {
-      wrap.innerHTML = lbl + `<input type="color" id="f_${q.id}" value="${q.default||'#4f46e5'}">`;
-    } else if (q.type === 'select') {
-      const opts = q.options.map(o => `<option value="${o.value}" ${o.value===q.default?'selected':''}>${o.label}</option>`).join('');
-      wrap.innerHTML = lbl + `<select id="f_${q.id}">${opts}</select>`;
-    } else if (q.type === 'multiselect') {
-      const def = new Set(q.default || []);
-      multi[q.id] = def;
-      const chips = q.options.map(o =>
-        `<span class="chip ${def.has(o.value)?'on':''}" data-q="${q.id}" data-o="${o.value}">${o.label}</span>`).join('');
-      wrap.innerHTML = lbl + `<div class="chips">${chips}</div>`;
+  for (const k of Object.keys(single)) delete single[k];
+  groups = [...new Set(SCHEMA.map(q => q.group))];
+  steps = [];
+  let lastChapter = null, chapterNo = 0;
+  SCHEMA.forEach((q, qi) => {
+    if (q.chapter !== lastChapter) {          // new chapter -> divider slide
+      lastChapter = q.chapter; chapterNo++;
+      const c = chapters.find(x => x.key === q.chapter) || { title: '', sub: '' };
+      const intro = document.createElement('div');
+      intro.className = 'qslide intro';
+      intro.innerHTML = `<div class="chapnum">${chapterNo} / ${chapters.length}</div>`
+        + `<h2 class="chaptitle">${c.title}</h2><p class="chapsub">${c.sub}</p>`;
+      form.appendChild(intro);
+      steps.push({ type: 'intro', chapter: q.chapter });
     }
+    const wrap = document.createElement('div');
+    wrap.className = 'qslide';
+    wrap.innerHTML = questionHTML(q);
     form.appendChild(wrap);
-  }
-  form.querySelectorAll('.chip').forEach(c => c.onclick = () => {
-    const set = multi[c.dataset.q];
-    if (set.has(c.dataset.o)) set.delete(c.dataset.o); else set.add(c.dataset.o);
-    c.classList.toggle('on');
+    steps.push({ type: 'q', qi });
   });
+  form.querySelectorAll('.opt[data-v]').forEach(b => b.onclick = () => {   // single
+    single[b.dataset.q] = b.dataset.v;
+    b.parentElement.querySelectorAll('.opt').forEach(x => x.classList.remove('on'));
+    b.classList.add('on');
+  });
+  form.querySelectorAll('.opt[data-o]').forEach(b => b.onclick = () => {   // multi
+    const set = multi[b.dataset.q];
+    if (set.has(b.dataset.o)) set.delete(b.dataset.o); else set.add(b.dataset.o);
+    b.classList.toggle('on');
+  });
+  showStep(0);
 }
 
 function collect() {
   const a = { lang: LANG };
   for (const q of SCHEMA) {
     if (q.type === 'multiselect') a[q.id] = [...multi[q.id]];
-    else {
-      const el = $('#f_' + q.id);
-      a[q.id] = el ? el.value : '';
-      if (q.type === 'color' && a[q.id] === '#4f46e5') a[q.id] = '';
-    }
+    else if (q.type === 'select') a[q.id] = single[q.id] || '';
+    else { const el = $('#f_' + q.id); a[q.id] = el ? el.value : ''; }
   }
   return a;
 }
 
-async function generate() {
+// ---- Brief wizard: chaptered, one screen at a time ----
+let steps = [], stepIndex = 0;
+
+function chapterOfStep(s) { return s.type === 'intro' ? s.chapter : SCHEMA[s.qi].chapter; }
+
+function showStep(i) {
+  const slides = $('#brief-form').children;
+  if (!slides.length) return;
+  stepIndex = Math.max(0, Math.min(i, steps.length - 1));
+  [...slides].forEach((s, idx) => s.classList.toggle('on', idx === stepIndex));
+  renderChapters();
+  const step = steps[stepIndex];
+  const isIntro = step.type === 'intro';
+  $('#wiz-section').textContent = isIntro ? '' : (SCHEMA[step.qi].group_label || '');
+  $('#brief-next').textContent = isIntro ? (UI.begin_btn || 'Begin') : UI.continue_btn;
   $('#form-err').textContent = '';
-  $('#go').disabled = true;
-  const r = await fetch('/api/generate', {
-    method: 'POST', headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({answers: collect()}),
-  });
-  const data = await r.json();
-  $('#go').disabled = false;
-  if (!r.ok) { $('#form-err').textContent = data.error || UI.err_generic; return; }
-  showStep('#work-step', 2);
-  poll(data.job_id);
-}
-
-async function poll(jobId) {
-  const r = await fetch('/api/job/' + jobId);
-  const job = await r.json();
-  $('#engine').textContent = UI.engine_label + ': ' + (job.engine || '?');
-  $('#tasks').innerHTML = job.tasks.map(t =>
-    `<li class="${t.status}"><span class="dot"></span>${t.label}</li>`).join('');
-  if (job.status === 'error') { $('#engine').textContent = (job.error || UI.err_generic); return; }
-  if (job.status === 'done') { renderVariants(jobId, job.variants); return; }
-  setTimeout(() => poll(jobId), 500);
-}
-
-function renderVariants(jobId, variants) {
-  showStep('#pick-step', 3);
-  const box = $('#variants');
-  box.innerHTML = '';
-  for (const v of variants) {
-    const el = document.createElement('div');
-    el.className = 'variant';
-    const base = `/preview/${jobId}/${v.key}/`;
-    const pages = v.pages.map((p, i) =>
-      `<button class="${i===0?'on':''}" data-file="${p.file}">${p.label}</button>`).join('');
-    el.innerHTML = `
-      <div class="vhead"><h3>${v.title}</h3><span class="badge">${UI.selected}</span></div>
-      <div class="blurb">${v.blurb}</div>
-      <div class="pagebar">${pages}<button class="expand" title="Expand preview">⤢</button></div>
-      <iframe class="frame" src="${base}index.html"></iframe>
-      <div class="vbtns">
-        <a class="ghost" href="${base}index.html" target="_blank">${UI.open_full}</a>
-        <a href="/download/${jobId}/${v.key}">${UI.download_zip}</a>
-        <button class="pick">${UI.choose_this}</button>
-      </div>`;
-    const frame = el.querySelector('.frame');
-    el.querySelectorAll('.pagebar button:not(.expand)').forEach(b => b.onclick = () => {
-      el.querySelectorAll('.pagebar button:not(.expand)').forEach(x => x.classList.remove('on'));
-      b.classList.add('on');
-      frame.src = base + b.dataset.file;
-    });
-    el.querySelector('.expand').onclick = () => el.classList.toggle('big');
-    el.querySelector('.pick').onclick = () => {
-      box.querySelectorAll('.variant').forEach(x => x.classList.remove('sel'));
-      el.classList.add('sel');
-    };
-    box.appendChild(el);
+  if (!isIntro) {
+    const inp = slides[stepIndex].querySelector('input,textarea');
+    if (inp) setTimeout(() => inp.focus(), 60);
   }
 }
 
-$('#go').onclick = generate;
-loadSchema(navigator.language || 'en');
+function renderChapters() {
+  const order = chapters.map(c => c.key);
+  const curIdx = order.indexOf(chapterOfStep(steps[stepIndex]));
+  $('#wiz-chapters').innerHTML = chapters.map((c, ci) => {
+    let pct = 0;
+    if (ci < curIdx) pct = 100;
+    else if (ci === curIdx) {
+      const idxs = steps.map((s, i) => [s, i]).filter(([s]) => chapterOfStep(s) === c.key).map(([, i]) => i);
+      const first = idxs[0], last = idxs[idxs.length - 1];
+      pct = last > first ? Math.round((stepIndex - first) / (last - first) * 100) : 100;
+      pct = Math.max(8, pct);
+    }
+    return `<div class="chapseg"><span style="width:${pct}%"></span></div>`;
+  }).join('');
+}
+
+function validateStep(step) {
+  if (step.type !== 'q') return true;
+  const q = SCHEMA[step.qi];
+  if (!q.required) return true;
+  let ok;
+  if (q.type === 'multiselect') ok = multi[q.id] && multi[q.id].size > 0;
+  else if (q.type === 'select') ok = !!single[q.id];
+  else { const el = $('#f_' + q.id); ok = el && el.value.trim(); }
+  if (!ok) {
+    $('#form-err').textContent = (LANG === 'de' ? 'Bitte ausfüllen: ' : 'Please fill in: ') + q.label;
+    return false;
+  }
+  return true;
+}
+
+function nextStep() {
+  if (!validateStep(steps[stepIndex])) return;
+  if (stepIndex >= steps.length - 1) { show('contact'); return; }
+  showStep(stepIndex + 1);
+}
+
+function prevStep() {
+  if (stepIndex <= 0) { show('home'); return; }
+  showStep(stepIndex - 1);
+}
+
+function enterBrief() { show('brief'); showStep(0); }
+
+async function submit() {
+  $('#contact-err').textContent = '';
+  const contact = {
+    name: $('#c_name').value, email: $('#c_email').value,
+    phone: $('#c_phone').value, message: $('#c_message').value,
+  };
+  $('#submit').disabled = true;
+  let data = {};
+  try {
+    const r = await fetch('/api/submit', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ answers: collect(), contact }),
+    });
+    data = await r.json();
+    $('#submit').disabled = false;
+    if (!r.ok) { $('#contact-err').textContent = data.error || UI.err_generic; return; }
+  } catch (e) {
+    $('#submit').disabled = false;
+    $('#contact-err').textContent = UI.err_generic; return;
+  }
+  show('done');
+}
+
+function restart() {
+  buildForm();
+  $('#c_name').value = $('#c_email').value = $('#c_phone').value = $('#c_message').value = '';
+  $('#form-err').textContent = $('#contact-err').textContent = '';
+  show('brief');
+}
+
+// ---- Scrollytelling (GSAP + ScrollTrigger + Lenis). All optional/enhancement. ----
+function initScroll() {
+  if (scrollReady) return;
+  scrollReady = true;
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!window.gsap || !window.ScrollTrigger || reduce) return;   // graceful: content stays visible
+  gsap.registerPlugin(ScrollTrigger);
+
+  // Lenis smooth scroll, wired into GSAP's ticker + ScrollTrigger.
+  if (window.Lenis) {
+    lenis = new Lenis({ duration: 1.05, easing: t => Math.min(1, 1.001 - Math.pow(2, -10 * t)) });
+    lenis.on('scroll', ScrollTrigger.update);
+    gsap.ticker.add((time) => lenis.raf(time * 1000));
+    gsap.ticker.lagSmoothing(0);
+  }
+
+  const ease = 'power3.out';
+
+  // Hero: scale up + fade + blur as it leaves.
+  gsap.to('.hero-inner', {
+    scrollTrigger: { trigger: '.lp-hero', start: 'top top', end: 'bottom top', scrub: true },
+    scale: 1.18, opacity: 0, filter: 'blur(10px)', ease: 'none',
+  });
+  gsap.to('.scroll-cue', {
+    scrollTrigger: { trigger: '.lp-hero', start: 'top top', end: '30% top', scrub: true }, opacity: 0,
+  });
+  // Parallax depth — the orbs drift at different speeds as the hero scrolls away.
+  const heroST = { trigger: '.lp-hero', start: 'top top', end: 'bottom top', scrub: true };
+  gsap.to('.orb.a', { yPercent: 26, ease: 'none', scrollTrigger: heroST });
+  gsap.to('.orb.b', { yPercent: -20, ease: 'none', scrollTrigger: heroST });
+  gsap.to('.orb.c', { yPercent: 34, ease: 'none', scrollTrigger: heroST });
+
+  // How it works: the three steps rise + de-blur in a gentle stagger.
+  gsap.from('.how-step', {
+    scrollTrigger: { trigger: '.lp-how', start: 'top 75%' },
+    y: 36, opacity: 0, filter: 'blur(6px)', stagger: 0.14, duration: 0.8, ease,
+  });
+
+  // Stats: staggered rise + de-blur.
+  gsap.from('.stat', {
+    scrollTrigger: { trigger: '.lp-stats', start: 'top 78%' },
+    y: 48, opacity: 0, filter: 'blur(8px)', stagger: 0.12, duration: 0.9, ease,
+  });
+
+  // Showcase: each card grows + brightens toward center, then shrinks as it
+  // passes — a gentle scroll-driven pulse (no scroll-jacking, page scrolls normally).
+  gsap.utils.toArray('.sc-card').forEach((card) => {
+    gsap.timeline({
+      scrollTrigger: { trigger: card, start: 'top bottom', end: 'bottom top', scrub: true },
+    })
+      .fromTo(card, { scale: 0.86, opacity: 0.7 }, { scale: 1, opacity: 1, ease: 'sine.out' })
+      .to(card, { scale: 0.86, opacity: 0.7, ease: 'sine.in' });
+  });
+
+  // Closing CTA: assembles from its parts.
+  gsap.from('.lp-cta > *', {
+    scrollTrigger: { trigger: '.lp-cta', start: 'top 75%' },
+    y: 40, opacity: 0, filter: 'blur(6px)', stagger: 0.14, duration: 0.9, ease,
+  });
+
+  ScrollTrigger.refresh();
+}
+
+$('#logo').onclick = () => show('home');
+$('#nav-cta').onclick = enterBrief;
+$('#home-cta').onclick = enterBrief;
+$('#home-cta-2').onclick = enterBrief;
+const scrollDown = () => {
+  const t = document.querySelector('.lp-how');
+  if (lenis) lenis.scrollTo(t); else t.scrollIntoView({ behavior: 'smooth' });
+};
+$('#see-how').onclick = scrollDown;
+$('#scroll-cue-btn').onclick = scrollDown;
+$('#brief-back').onclick = prevStep;
+$('#brief-next').onclick = nextStep;
+$('#contact-back').onclick = () => { show('brief'); showStep(stepIndex); };
+$('#submit').onclick = submit;
+$('#restart').onclick = restart;
+// Enter advances to the next step (but not inside a textarea).
+$('#brief-form').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') { e.preventDefault(); nextStep(); }
+});
+loadSchema(navigator.language || 'en', true);
 </script>
 </body>
 </html>

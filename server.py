@@ -1,29 +1,27 @@
 """Zero-dependency local web server for webgen.
 
 Routes
-  GET  /                              -> the questionnaire UI
-  GET  /api/schema                    -> the questions (frontend renders the form)
-  POST /api/generate   {answers}      -> {job_id}; starts the agent
-  GET  /api/job/<id>                  -> job snapshot (status, task list, variants)
-  GET  /preview/<id>/<variant>/<file> -> a rendered page (relative links work)
-  GET  /download/<id>/<variant>       -> the variant as a .zip
+  GET  /                          -> the homepage + questionnaire + contact UI
+  GET  /api/schema                -> the questions (frontend renders the form)
+  POST /api/submit  {answers,contact} -> {ok, lead_id}; stores the lead
+
+The customer app captures leads (brief + contact); it no longer generates sites
+itself — that happens separately via our own API, fed from the stored leads.
 
 All bodies are UTF-8; only ASCII goes in headers (http.server uses Latin-1 there).
 """
 
-import io
 import json
 import os
-import zipfile
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlsplit
 
 from . import i18n
-from .agent import JobStore
 from .brief import Brief, QUESTIONS
+from .leads import Contact, LeadStore
 
 _STATIC = os.path.join(os.path.dirname(__file__), "static")
-STORE = JobStore()
+STORE = LeadStore()
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -69,14 +67,9 @@ class Handler(BaseHTTPRequestHandler):
                 "lang": lang,
                 "ui": i18n.ui(lang),
                 "questions": i18n.localized_questions(QUESTIONS, lang),
+                "chapters": i18n.chapters_list(lang),
                 "languages": i18n.LANG_NAMES,
             })
-        if path.startswith("/api/job/"):
-            return self._job(path.rsplit("/", 1)[-1])
-        if path.startswith("/preview/"):
-            return self._preview(path)
-        if path.startswith("/download/"):
-            return self._download(path)
         self._json(404, {"error": "not found"})
 
     def do_HEAD(self):
@@ -89,68 +82,25 @@ class Handler(BaseHTTPRequestHandler):
         except OSError:
             self._json(404, {"error": "not found"})
 
-    def _job(self, job_id: str):
-        job = STORE.get(job_id)
-        if not job:
-            return self._json(404, {"error": "unknown job"})
-        self._json(200, job.snapshot())
-
-    def _preview(self, path: str):
-        # /preview/<id>/<variant>/<file?>
-        parts = path.split("/")[2:]
-        if len(parts) < 2:
-            return self._json(404, {"error": "bad preview path"})
-        job_id, vkey = parts[0], parts[1]
-        fname = parts[2] if len(parts) > 2 and parts[2] else "index.html"
-        job = STORE.get(job_id)
-        variant = job.variant(vkey) if job else None
-        if not variant:
-            return self._json(404, {"error": "unknown variant"})
-        page = variant.files.get(fname)
-        if page is None:
-            return self._json(404, {"error": "unknown page"})
-        self._html(200, page)
-
-    def _download(self, path: str):
-        parts = path.split("/")[2:]
-        if len(parts) < 2:
-            return self._json(404, {"error": "bad download path"})
-        job_id, vkey = parts[0], parts[1]
-        job = STORE.get(job_id)
-        variant = job.variant(vkey) if job else None
-        if not variant:
-            return self._json(404, {"error": "unknown variant"})
-        buf = io.BytesIO()
-        with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
-            for fname, content in variant.files.items():
-                zf.writestr(fname, content)
-        data = buf.getvalue()
-        safe = "".join(c for c in (job.brief.name or "site") if c.isalnum()) or "site"
-        self.send_response(200)
-        self.send_header("Content-Type", "application/zip")
-        self.send_header("Content-Disposition",
-                         f'attachment; filename="{safe}-{vkey}.zip"')
-        self.send_header("Content-Length", str(len(data)))
-        self.end_headers()
-        self.wfile.write(data)
-
     # -- POST ---------------------------------------------------------------
 
     def do_POST(self):
         path = urlsplit(self.path).path
-        if path != "/api/generate":
+        if path != "/api/submit":
             return self._json(404, {"error": "not found"})
         try:
             length = int(self.headers.get("Content-Length", 0))
             payload = json.loads(self.rfile.read(length) or b"{}")
-            answers = payload.get("answers", payload)
+            answers = payload.get("answers", {})
+            lang = i18n.norm_lang(answers.get("lang") or payload.get("lang"))
             brief = Brief.from_answers(answers)
+            contact = Contact.from_input(payload.get("contact", {}), lang)
         except ValueError as exc:
             return self._json(400, {"error": str(exc)})
         except Exception as exc:                # noqa: BLE001
             return self._json(400, {"error": f"bad request: {exc}"})
-        job = STORE.create(brief)
-        self._json(200, {"job_id": job.id})
+        lead = STORE.create(brief, contact)
+        self._json(200, {"ok": True, "lead_id": lead.id})
 
 
 def serve(port: int = 8770) -> None:
