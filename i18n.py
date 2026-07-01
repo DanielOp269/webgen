@@ -203,10 +203,14 @@ Q = {
         "pages": ("Which pages would you like? (pick any)", ""),
         "features": ("Any special features? (pick any, or skip)", ""),
         "feel": ("How should your website feel?", ""),
-        "colors": ("Which colours feel right?", ""),
+        "imagery": ("What should stand out most?", ""),
         "logo": ("Do you already have a logo?", ""),
         "example": ("A website whose look you like? (optional)",
                     "Paste a link, e.g. www.example.com"),
+        "motion": ("How much movement should your website have?", ""),
+        "intensity": ("Calm or bold?", ""),
+        "colors": ("Which colours feel right?", ""),
+        "theme": ("Light or dark?", ""),
     },
     "de": {
         "name": ("Wie heißt Ihr Unternehmen?", "z. B. Nordlicht Café"),
@@ -221,10 +225,14 @@ Q = {
         "pages": ("Welche Seiten möchten Sie? (beliebig wählen)", ""),
         "features": ("Besondere Funktionen? (beliebig wählen oder überspringen)", ""),
         "feel": ("Wie soll sich Ihre Website anfühlen?", ""),
-        "colors": ("Welche Farben passen für Sie?", ""),
+        "imagery": ("Was soll am meisten auffallen?", ""),
         "logo": ("Haben Sie schon ein Logo?", ""),
         "example": ("Eine Website, deren Look Ihnen gefällt? (optional)",
                     "Link einfügen, z. B. www.beispiel.de"),
+        "motion": ("Wie viel Bewegung soll Ihre Website haben?", ""),
+        "intensity": ("Ruhig oder auffällig?", ""),
+        "colors": ("Welche Farben passen für Sie?", ""),
+        "theme": ("Hell oder dunkel?", ""),
     },
 }
 
@@ -232,8 +240,10 @@ Q = {
 # Question groups (the wizard shows these as "parts")
 # --------------------------------------------------------------------------
 GROUPS = {
-    "en": {"you": "About you", "website": "Your website", "look": "The look"},
-    "de": {"you": "Über Sie", "website": "Ihre Website", "look": "Das Aussehen"},
+    "en": {"you": "About you", "website": "Your website",
+           "look": "Overall look", "dynamic": "Dynamic", "color": "Colours"},
+    "de": {"you": "Über Sie", "website": "Ihre Website",
+           "look": "Aussehen", "dynamic": "Dynamik", "color": "Farben"},
 }
 
 # --------------------------------------------------------------------------
@@ -268,9 +278,17 @@ OPTIONS = {
                      "newsletter": "Newsletter sign-up"},
         "feel": {"warm": "Warm & friendly", "professional": "Professional & trustworthy",
                  "modern": "Modern & clean", "classic": "Classic & elegant"},
+        "imagery": {"photos": "Big photos", "text": "Clean, clear text",
+                    "graphics": "Illustrations & graphics", "mix": "A balanced mix"},
+        "motion": {"still": "Calm — barely any movement", "gentle": "Gentle, smooth movement",
+                   "lively": "Lively & animated"},
+        "intensity": {"calm": "Calm & understated", "balanced": "Balanced",
+                      "bold": "Bold & striking"},
         "colors": {"blue": "Calm blues", "green": "Fresh greens",
                    "warm": "Warm reds & oranges", "elegant": "Elegant black & gold",
                    "neutral": "Soft & neutral", "designer": "Let the designer choose"},
+        "theme": {"light": "Bright & light", "dark": "Dark & dramatic",
+                  "auto": "Let the designer choose"},
         "logo": {"have": "Yes, I have one", "need": "No, I need one", "unsure": "Not sure"},
     },
     "de": {
@@ -301,9 +319,17 @@ OPTIONS = {
                      "newsletter": "Newsletter-Anmeldung"},
         "feel": {"warm": "Warm & freundlich", "professional": "Professionell & seriös",
                  "modern": "Modern & klar", "classic": "Klassisch & elegant"},
+        "imagery": {"photos": "Große Fotos", "text": "Klarer, aufgeräumter Text",
+                    "graphics": "Illustrationen & Grafiken", "mix": "Eine ausgewogene Mischung"},
+        "motion": {"still": "Ruhig — kaum Bewegung", "gentle": "Sanfte, weiche Bewegung",
+                   "lively": "Lebendig & animiert"},
+        "intensity": {"calm": "Ruhig & dezent", "balanced": "Ausgewogen",
+                      "bold": "Auffällig & markant"},
         "colors": {"blue": "Ruhige Blautöne", "green": "Frisches Grün",
                    "warm": "Warme Rot- & Orangetöne", "elegant": "Elegantes Schwarz & Gold",
                    "neutral": "Sanft & neutral", "designer": "Der Designer entscheidet"},
+        "theme": {"light": "Hell & freundlich", "dark": "Dunkel & edel",
+                  "auto": "Der Designer entscheidet"},
         "logo": {"have": "Ja, habe ich", "need": "Nein, brauche ich", "unsure": "Bin nicht sicher"},
     },
 }

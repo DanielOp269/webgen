@@ -53,15 +53,25 @@ QUESTIONS: list[dict[str, Any]] = [
     {"id": "features", "type": "multiselect", "required": False, "group": "website",
      "options": ["booking", "contactform", "map", "gallery", "reviews", "shop", "newsletter"],
      "default": []},
-    # 3) The look
+    # 3) Overall look
     {"id": "feel", "type": "select", "required": True, "group": "look",
      "options": ["warm", "professional", "modern", "classic"]},
-    {"id": "colors", "type": "select", "required": True, "group": "look",
-     "options": ["blue", "green", "warm", "elegant", "neutral", "designer"],
-     "default": "designer"},
+    {"id": "imagery", "type": "select", "required": False, "group": "look",
+     "options": ["photos", "text", "graphics", "mix"]},
     {"id": "logo", "type": "select", "required": False, "group": "look",
      "options": ["have", "need", "unsure"]},
     {"id": "example", "type": "text", "required": False, "group": "look"},
+    # 4) Dynamic (movement & energy)
+    {"id": "motion", "type": "select", "required": False, "group": "dynamic",
+     "options": ["still", "gentle", "lively"]},
+    {"id": "intensity", "type": "select", "required": False, "group": "dynamic",
+     "options": ["calm", "balanced", "bold"]},
+    # 5) Colours
+    {"id": "colors", "type": "select", "required": True, "group": "color",
+     "options": ["blue", "green", "warm", "elegant", "neutral", "designer"],
+     "default": "designer"},
+    {"id": "theme", "type": "select", "required": False, "group": "color",
+     "options": ["light", "dark", "auto"], "default": "auto"},
 ]
 
 _BY_ID = {q["id"]: q for q in QUESTIONS}
@@ -86,6 +96,10 @@ class Brief:
     features: list[str] = field(default_factory=list)
     logo: str = ""
     example: str = ""
+    imagery: str = ""
+    motion: str = ""
+    intensity: str = ""
+    theme: str = ""
 
     @classmethod
     def from_answers(cls, answers: dict[str, Any]) -> "Brief":
@@ -124,4 +138,8 @@ class Brief:
             features=as_list(answers.get("features"), []),
             logo=answers.get("logo", ""),
             example=(answers.get("example") or "").strip(),
+            imagery=answers.get("imagery", ""),
+            motion=answers.get("motion", ""),
+            intensity=answers.get("intensity", ""),
+            theme=answers.get("theme") or "auto",
         )
