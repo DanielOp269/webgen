@@ -18,14 +18,17 @@ import zipfile
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlsplit
 
-from . import console, i18n, siteedit, uploads
+from . import console, devseed, i18n, siteedit, uploads
 from .agent import JobStore
 from .brief import Brief, QUESTIONS
+from .generator import default_generator
 from .leads import Contact, LeadStore
 
 _STATIC = os.path.join(os.path.dirname(__file__), "static")
 STORE = LeadStore()
 JOBS = JobStore()               # finished jobs written by the worker (read fresh per request)
+# Dev-only: one-click demo seeding (never on in production).
+DEV = os.environ.get("WEBGEN_DEV", "").lower() in ("1", "true", "yes")
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -78,6 +81,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._console(path)
         if path == "/site" or path.startswith("/site/"):
             return self._live_site(path)
+        if DEV and path == "/dev":
+            return self._html(200, devseed.render_page(default_generator().name))
         self._json(404, {"error": "not found"})
 
     # -- the customer's live website ----------------------------------------
@@ -212,6 +217,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._console_save_site(path)
         if path.startswith("/c/") and path.endswith("/upload"):
             return self._console_upload(path)
+        if DEV and path == "/api/dev/seed":
+            return self._dev_seed()
         if path != "/api/submit":
             return self._json(404, {"error": "not found"})
         try:
@@ -274,6 +281,22 @@ class Handler(BaseHTTPRequestHandler):
         if not name:
             return self._json(400, {"ok": False})
         self._json(200, {"ok": True, "url": f"/c/{lead_id}/img/{name}"})
+
+    def _dev_seed(self):
+        """POST /api/dev/seed?kind=… — create a realistic lead + start generation."""
+        kind = (parse_qs(urlsplit(self.path).query).get("kind") or [""])[0]
+        sample = devseed.SAMPLES.get(kind)
+        if not sample:
+            return self._json(404, {"error": "unknown sample"})
+        try:
+            brief = Brief.from_answers(sample["answers"])
+            contact = Contact.from_input(sample["contact"], brief.lang)
+        except ValueError as exc:
+            return self._json(400, {"error": str(exc)})
+        lead = STORE.create(brief, contact)
+        # Generate in-process with the server's engine (browser for real sites).
+        JOBS.create(brief, default_generator(), lead_id=lead.id)
+        self._redirect(f"/c/{lead.id}")
 
     def _redirect(self, location: str):
         # POST→redirect→GET so a refresh doesn't re-submit.
