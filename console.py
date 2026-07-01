@@ -71,24 +71,36 @@ main { padding: 24px 0 64px; }
 .btn.primary:hover { filter: brightness(1.07); }
 .btn.primary.chosen { background: #16a34a; cursor: default; }
 .btn.ghost { color: #2563eb; }
+.btn.big { display: block; width: 100%; text-align: center; padding: 15px 18px;
+   font-size: 16px; margin-bottom: 12px; }
+.btn.edit { background: #16a34a; color: #fff; border: 0; font: inherit; font-weight: 600; }
+.btn.edit:hover { filter: brightness(1.06); }
+.btn.outline { background: #fff; border: 1.5px solid #cbd5e1; color: #0f172a; }
+.btn.outline:hover { border-color: #94a3b8; }
 .actions form { margin: 0; }
-.hero.confirmed { padding-top: 40px; }
-.hero.confirmed .check { width: 46px; height: 46px; border-radius: 50%;
-   background: #16a34a; color: #fff; font-size: 26px; font-weight: 700;
-   display: flex; align-items: center; justify-content: center; margin-bottom: 14px; }
-.hero.confirmed h1 { color: #15803d; }
-.hero.confirmed .cta-row { display: flex; gap: 12px; align-items: center;
-   flex-wrap: wrap; margin-top: 18px; }
-.hero.confirmed .btn.edit { background: #16a34a; padding: 13px 24px; font-size: 16px; }
-.hero.confirmed .btn.edit:hover { filter: brightness(1.05); }
-.editbox { margin-top: 26px; max-width: 560px; background: #fff;
-   border: 1px solid #e2e8f0; border-radius: 14px; padding: 18px; text-align: left; }
-.editbox label { display: block; font-weight: 600; font-size: 15px;
-   color: #0f172a; margin-bottom: 8px; }
-.editbox textarea { width: 100%; padding: 12px 14px; border: 1px solid #cbd5e1;
-   border-radius: 10px; font: inherit; resize: vertical; color: #0f172a; }
-.editbox textarea:focus { outline: none; border-color: #2563eb; }
-.editbox .btn { margin-top: 10px; }
+
+/* chosen → "My Website" dashboard */
+.dash { padding: 40px 0 16px; }
+.live-note { display: flex; align-items: center; gap: 9px; color: #15803d;
+   font-weight: 700; font-size: 16px; margin-bottom: 16px; }
+.live-note .check { width: 26px; height: 26px; border-radius: 50%; background: #16a34a;
+   color: #fff; font-size: 15px; display: inline-flex; align-items: center;
+   justify-content: center; }
+.mywebsite { display: grid; grid-template-columns: 1.35fr 1fr; gap: 28px;
+   align-items: center; background: #fff; border: 1px solid #e2e8f0;
+   border-radius: 18px; padding: 22px; }
+.mywebsite .preview { position: relative; height: 340px; overflow: hidden;
+   border: 1px solid #e2e8f0; border-radius: 12px; background: #f8fafc; }
+.mywebsite .preview iframe { position: absolute; top: 0; left: 0; width: 1280px;
+   height: 1000px; border: 0; transform: scale(.53); transform-origin: top left; }
+.mywebsite .preview .cover { position: absolute; inset: 0; }
+.mywebsite .panel h1 { font-size: 26px; }
+.mywebsite .panel .design { display: flex; align-items: center; gap: 8px;
+   color: #64748b; font-size: 14px; margin: 8px 0 22px; }
+.mywebsite .panel .hint { color: #94a3b8; font-size: 13px; margin-top: 4px; }
+.others { padding: 24px 0 60px; }
+.others-h { font-size: 18px; color: #334155; margin-bottom: 16px; }
+@media (max-width: 760px) { .mywebsite { grid-template-columns: 1fr; } }
 .state { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px;
          padding: 48px 40px; text-align: center; margin-top: 32px; }
 .state h1 { font-size: 26px; margin-bottom: 10px; }
@@ -194,41 +206,51 @@ def render_page(lead: Lead | None, job: Job | None, lang: str) -> str:
                            U["console_editing_sub"], spinner=True, refresh=True)
 
     chosen = job.chosen
+    cv = job.variant(chosen) if chosen else None
+
+    # Chosen + live → a clean "My Website" dashboard (not the option grid).
+    if cv is not None:
+        lid = _esc(lead.id)
+        others = [v for v in job.variants if v.key != chosen]
+        others_html = ""
+        if others:
+            cards = "".join(
+                _variant_card(lead, v.key, v.title, v.blurb, v.accent, False, U)
+                for v in others
+            )
+            others_html = f"""<section class="others"><div class="wrap">
+  <h2 class="others-h">{_esc(U['console_others_h'])}</h2>
+  <div class="grid">{cards}</div>
+</div></section>"""
+        body = f"""<section class="dash"><div class="wrap">
+  <div class="live-note"><span class="check">✓</span> {_esc(U['console_live_note'])}</div>
+  <div class="mywebsite">
+    <div class="preview">
+      <iframe src="/site/{lid}/" scrolling="no" title="{_esc(brand)}"></iframe>
+      <a class="cover" href="/site/{lid}/" target="_blank" rel="noopener"></a>
+    </div>
+    <div class="panel">
+      <h1>{_esc(brand)}</h1>
+      <p class="design"><span class="dot" style="background:{_esc(cv.accent)}"></span>
+        {_esc(U['console_design'].format(title=cv.title))}</p>
+      <a class="btn big edit" href="/c/{lid}/editor">{_esc(U['console_edit_open'])}</a>
+      <a class="btn big outline" href="/site/{lid}/" target="_blank"
+         rel="noopener">{_esc(U['console_visit'])}</a>
+      <p class="hint">{_esc(U['console_live_hint'])}</p>
+    </div>
+  </div>
+</div></section>
+{others_html}"""
+        return _shell(lang, brand, sub, body, refresh=False)
+
+    # Not chosen yet → the options grid to pick from.
     cards = "".join(
-        _variant_card(lead, v.key, v.title, v.blurb, v.accent,
-                      chosen == v.key, U)
+        _variant_card(lead, v.key, v.title, v.blurb, v.accent, False, U)
         for v in job.variants
     )
-
-    if chosen and job.variant(chosen):
-        # Confirmation banner leads; the grid stays below so they can switch.
-        title = job.variant(chosen).title
-        heading = U["console_chosen_h"]
-        sub_msg = U["console_chosen_sub"].format(title=title)
-        edit_box = f"""<form class="editbox" method="post"
-        action="/c/{_esc(lead.id)}/edit">
-    <label>{_esc(U['console_edit_label'])}</label>
-    <textarea name="instruction" rows="2" required
-              placeholder="{_esc(U['console_edit_ph'])}"></textarea>
-    <button class="btn primary" type="submit">{_esc(U['console_edit_btn'])}</button>
-  </form>"""
-        hero = f"""<section class="hero confirmed"><div class="wrap">
-  <div class="check">✓</div>
-  <h1>{_esc(heading)}</h1>
-  <p>{_esc(sub_msg)}</p>
-  <div class="cta-row">
-    <a class="btn primary edit" href="/c/{_esc(lead.id)}/editor">{_esc(U['console_edit_open'])}</a>
-    <a class="btn ghost" href="/site/{_esc(lead.id)}/" target="_blank"
-       rel="noopener">{_esc(U['console_visit'])}</a>
-  </div>
-  {edit_box}
-</div></section>"""
-    else:
-        hero = f"""<section class="hero"><div class="wrap">
+    body = f"""<section class="hero"><div class="wrap">
   <h1>{_esc(U['console_ready_h'])}</h1>
   <p>{_esc(U['console_ready_sub'])}</p>
-</div></section>"""
-
-    body = f"""{hero}
+</div></section>
 <main><div class="wrap"><div class="grid">{cards}</div></div></main>"""
     return _shell(lang, brand, sub, body, refresh=False)

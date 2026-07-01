@@ -130,6 +130,11 @@ UI = {
                               "mind? Just pick another below and it switches "
                               "instantly.",
         "console_visit": "Visit your website →",
+        "console_live_note": "Your website is live",
+        "console_design": "Design: {title}",
+        "console_live_hint": "It's online now. We'll be in touch about your own "
+                             "web address (like yourbusiness.com).",
+        "console_others_h": "Prefer a different look? You can switch any time.",
         "console_edit_label": "Want a change? Just tell us — no tech needed.",
         "console_edit_ph": "e.g. change our opening hours, use warmer colours, "
                            "add our phone number to the top",
@@ -245,6 +250,11 @@ UI = {
                               "Wählen Sie einfach unten eine andere — sie wird "
                               "sofort umgestellt.",
         "console_visit": "Website ansehen →",
+        "console_live_note": "Ihre Website ist live",
+        "console_design": "Design: {title}",
+        "console_live_hint": "Sie ist jetzt online. Wegen Ihrer eigenen Web-Adresse "
+                             "(z. B. ihrunternehmen.de) melden wir uns.",
+        "console_others_h": "Lieber ein anderer Look? Sie können jederzeit wechseln.",
         "console_edit_label": "Eine Änderung gewünscht? Sagen Sie einfach Bescheid "
                               "— ganz ohne Technik.",
         "console_edit_ph": "z. B. Öffnungszeiten ändern, wärmere Farben, unsere "
