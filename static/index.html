@@ -174,18 +174,23 @@
   .card > h2 { font-size:28px; }
   .card > .sub { color:var(--body); margin-top:8px; font-size:17px; }
 
-  /* brief wizard — one question at a time */
+  /* brief wizard — chaptered, one question at a time */
+  .wiz-chapters { display:flex; gap:8px; margin-bottom:10px; }
+  .chapseg { flex:1; height:6px; background:var(--line); border-radius:999px; overflow:hidden; }
+  .chapseg > span { display:block; height:100%; width:0; background:var(--accent);
+                    border-radius:999px; transition:width .4s cubic-bezier(.4,0,.2,1); }
   .wiz-section { color:var(--accent); font-size:13px; font-weight:600; letter-spacing:.06em;
-                 text-transform:uppercase; }
-  .wiz-top { display:flex; align-items:center; gap:14px; margin:10px 0 6px; }
-  .wiz-progress { flex:1; height:6px; background:var(--line); border-radius:999px; overflow:hidden; }
-  .wiz-progress span { display:block; height:100%; width:0; background:var(--accent);
-                       border-radius:999px; transition:width .35s cubic-bezier(.4,0,.2,1); }
-  .wiz-count { font-size:13px; color:var(--muted); white-space:nowrap; }
+                 text-transform:uppercase; min-height:16px; }
   .qslide { display:none; }
   .qslide.on { display:block; animation:qfade .35s ease; }
-  #brief-form .qslide label { font-size:20px; font-weight:600; margin:18px 0 16px; }
-  @keyframes qfade { from{opacity:0; transform:translateY(8px)} to{opacity:1; transform:none} }
+  #brief-form .qslide label { font-size:20px; font-weight:600; margin:14px 0 16px; }
+  @keyframes qfade { from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:none} }
+
+  /* chapter divider slide */
+  .qslide.intro { text-align:center; padding:30px 0 16px; }
+  .qslide.intro .chapnum { color:var(--accent); font-size:13px; font-weight:700; letter-spacing:.14em; }
+  .qslide.intro .chaptitle { font-size:clamp(30px,5vw,42px); letter-spacing:-.03em; margin:14px 0 12px; }
+  .qslide.intro .chapsub { color:var(--body); font-size:18px; max-width:32ch; margin:0 auto; line-height:1.4; }
 
   /* big tappable choice cards (single = round tick, multi = square tick) */
   .opts { display:flex; flex-direction:column; gap:12px; margin-top:6px; }
@@ -324,11 +329,8 @@
 <main class="funnel">
   <section id="brief-step" class="step">
     <div class="card">
+      <div class="wiz-chapters" id="wiz-chapters"></div>
       <div class="wiz-section" id="wiz-section"></div>
-      <div class="wiz-top">
-        <div class="wiz-progress"><span id="wiz-bar"></span></div>
-        <div class="wiz-count" id="wiz-count"></div>
-      </div>
       <form id="brief-form"></form>
       <div class="err" id="form-err"></div>
       <div class="actions">
@@ -386,6 +388,7 @@ let SCHEMA = [], UI = {}, LANG = 'en';
 const multi = {};      // multiselect state: qid -> Set(values)
 const single = {};     // select state: qid -> value
 let groups = [];       // ordered unique question groups
+let chapters = [];     // [{key,title,sub}] top-level chapters
 let curStep = 'home';
 let lenis = null, scrollReady = false;
 
@@ -451,7 +454,7 @@ function applyUI() {
 async function loadSchema(lang, first) {
   const r = await fetch('/api/schema?lang=' + encodeURIComponent(lang || ''));
   const data = await r.json();
-  LANG = data.lang; UI = data.ui; SCHEMA = data.questions;
+  LANG = data.lang; UI = data.ui; SCHEMA = data.questions; chapters = data.chapters || [];
   applyUI();
   buildLangSelect(data.languages);
   buildForm();
@@ -466,48 +469,64 @@ function buildLangSelect(languages) {
   sel.onchange = () => loadSchema(sel.value, false);
 }
 
+function questionHTML(q) {
+  const opt = q.required ? '' : ` <span class="hint">(${UI.optional})</span>`;
+  const lbl = `<label>${q.label}${opt}</label>`;
+  if (q.type === 'text')
+    return lbl + `<input type="text" id="f_${q.id}" placeholder="${q.placeholder||''}" value="${q.default||''}">`;
+  if (q.type === 'textarea')
+    return lbl + `<textarea id="f_${q.id}" placeholder="${q.placeholder||''}">${q.default||''}</textarea>`;
+  if (q.type === 'select') {
+    single[q.id] = q.default || '';
+    const opts = q.options.map(o =>
+      `<button type="button" class="opt ${o.value===single[q.id]?'on':''}" data-q="${q.id}" data-v="${o.value}"><span class="tick"></span><span>${o.label}</span></button>`).join('');
+    return lbl + `<div class="opts">${opts}</div>`;
+  }
+  if (q.type === 'multiselect') {
+    const def = new Set(q.default || []); multi[q.id] = def;
+    const opts = q.options.map(o =>
+      `<button type="button" class="opt multi ${def.has(o.value)?'on':''}" data-q="${q.id}" data-o="${o.value}"><span class="tick"></span><span>${o.label}</span></button>`).join('');
+    return lbl + `<div class="opts">${opts}</div>`;
+  }
+  return '';
+}
+
 function buildForm() {
   const form = $('#brief-form');
   form.innerHTML = '';
   for (const k of Object.keys(multi)) delete multi[k];
   for (const k of Object.keys(single)) delete single[k];
   groups = [...new Set(SCHEMA.map(q => q.group))];
-  for (const q of SCHEMA) {
+  steps = [];
+  let lastChapter = null, chapterNo = 0;
+  SCHEMA.forEach((q, qi) => {
+    if (q.chapter !== lastChapter) {          // new chapter -> divider slide
+      lastChapter = q.chapter; chapterNo++;
+      const c = chapters.find(x => x.key === q.chapter) || { title: '', sub: '' };
+      const intro = document.createElement('div');
+      intro.className = 'qslide intro';
+      intro.innerHTML = `<div class="chapnum">${chapterNo} / ${chapters.length}</div>`
+        + `<h2 class="chaptitle">${c.title}</h2><p class="chapsub">${c.sub}</p>`;
+      form.appendChild(intro);
+      steps.push({ type: 'intro', chapter: q.chapter });
+    }
     const wrap = document.createElement('div');
     wrap.className = 'qslide';
-    const opt = q.required ? '' : ` <span class="hint">(${UI.optional})</span>`;
-    const lbl = `<label>${q.label}${opt}</label>`;
-    if (q.type === 'text') {
-      wrap.innerHTML = lbl + `<input type="text" id="f_${q.id}" placeholder="${q.placeholder||''}" value="${q.default||''}">`;
-    } else if (q.type === 'textarea') {
-      wrap.innerHTML = lbl + `<textarea id="f_${q.id}" placeholder="${q.placeholder||''}">${q.default||''}</textarea>`;
-    } else if (q.type === 'select') {
-      single[q.id] = q.default || '';
-      const opts = q.options.map(o =>
-        `<button type="button" class="opt ${o.value===single[q.id]?'on':''}" data-q="${q.id}" data-v="${o.value}"><span class="tick"></span><span>${o.label}</span></button>`).join('');
-      wrap.innerHTML = lbl + `<div class="opts">${opts}</div>`;
-    } else if (q.type === 'multiselect') {
-      const def = new Set(q.default || []);
-      multi[q.id] = def;
-      const opts = q.options.map(o =>
-        `<button type="button" class="opt multi ${def.has(o.value)?'on':''}" data-q="${q.id}" data-o="${o.value}"><span class="tick"></span><span>${o.label}</span></button>`).join('');
-      wrap.innerHTML = lbl + `<div class="opts">${opts}</div>`;
-    }
+    wrap.innerHTML = questionHTML(q);
     form.appendChild(wrap);
-  }
-  // single-choice cards
-  form.querySelectorAll('.opt[data-v]').forEach(b => b.onclick = () => {
+    steps.push({ type: 'q', qi });
+  });
+  form.querySelectorAll('.opt[data-v]').forEach(b => b.onclick = () => {   // single
     single[b.dataset.q] = b.dataset.v;
     b.parentElement.querySelectorAll('.opt').forEach(x => x.classList.remove('on'));
     b.classList.add('on');
   });
-  // multi-choice cards
-  form.querySelectorAll('.opt[data-o]').forEach(b => b.onclick = () => {
+  form.querySelectorAll('.opt[data-o]').forEach(b => b.onclick = () => {   // multi
     const set = multi[b.dataset.q];
     if (set.has(b.dataset.o)) set.delete(b.dataset.o); else set.add(b.dataset.o);
     b.classList.toggle('on');
   });
-  showQuestion(0);
+  showStep(0);
 }
 
 function collect() {
@@ -520,30 +539,48 @@ function collect() {
   return a;
 }
 
-// ---- Brief wizard: one question per screen ----
-let qIndex = 0;
+// ---- Brief wizard: chaptered, one screen at a time ----
+let steps = [], stepIndex = 0;
 
-function showQuestion(i) {
-  const slides = document.querySelectorAll('#brief-form .qslide');
+function chapterOfStep(s) { return s.type === 'intro' ? s.chapter : SCHEMA[s.qi].chapter; }
+
+function showStep(i) {
+  const slides = $('#brief-form').children;
   if (!slides.length) return;
-  qIndex = Math.max(0, Math.min(i, slides.length - 1));
-  slides.forEach((s, idx) => s.classList.toggle('on', idx === qIndex));
-  const total = slides.length;
-  $('#wiz-bar').style.width = ((qIndex + 1) / total * 100) + '%';
-  $('#wiz-count').textContent = (UI.wiz_count || 'Question {n} of {total}')
-      .replace('{n}', qIndex + 1).replace('{total}', total);
-  const q = SCHEMA[qIndex];
-  const part = groups.indexOf(q.group) + 1;
-  $('#wiz-section').textContent = (UI.part_label || 'Part {n} of {total}')
-      .replace('{n}', part).replace('{total}', groups.length) + ' · ' + (q.group_label || '');
+  stepIndex = Math.max(0, Math.min(i, steps.length - 1));
+  [...slides].forEach((s, idx) => s.classList.toggle('on', idx === stepIndex));
+  renderChapters();
+  const step = steps[stepIndex];
+  const isIntro = step.type === 'intro';
+  $('#wiz-section').textContent = isIntro ? '' : (SCHEMA[step.qi].group_label || '');
+  $('#brief-next').textContent = isIntro ? (UI.begin_btn || 'Begin') : UI.continue_btn;
   $('#form-err').textContent = '';
-  const inp = slides[qIndex].querySelector('input,textarea');
-  if (inp) setTimeout(() => inp.focus(), 60);
+  if (!isIntro) {
+    const inp = slides[stepIndex].querySelector('input,textarea');
+    if (inp) setTimeout(() => inp.focus(), 60);
+  }
 }
 
-function validateCurrent() {
-  const q = SCHEMA[qIndex];
-  if (!q || !q.required) return true;
+function renderChapters() {
+  const order = chapters.map(c => c.key);
+  const curIdx = order.indexOf(chapterOfStep(steps[stepIndex]));
+  $('#wiz-chapters').innerHTML = chapters.map((c, ci) => {
+    let pct = 0;
+    if (ci < curIdx) pct = 100;
+    else if (ci === curIdx) {
+      const idxs = steps.map((s, i) => [s, i]).filter(([s]) => chapterOfStep(s) === c.key).map(([, i]) => i);
+      const first = idxs[0], last = idxs[idxs.length - 1];
+      pct = last > first ? Math.round((stepIndex - first) / (last - first) * 100) : 100;
+      pct = Math.max(8, pct);
+    }
+    return `<div class="chapseg"><span style="width:${pct}%"></span></div>`;
+  }).join('');
+}
+
+function validateStep(step) {
+  if (step.type !== 'q') return true;
+  const q = SCHEMA[step.qi];
+  if (!q.required) return true;
   let ok;
   if (q.type === 'multiselect') ok = multi[q.id] && multi[q.id].size > 0;
   else if (q.type === 'select') ok = !!single[q.id];
@@ -555,18 +592,18 @@ function validateCurrent() {
   return true;
 }
 
-function nextQuestion() {
-  if (!validateCurrent()) return;
-  if (qIndex >= SCHEMA.length - 1) { show('contact'); return; }
-  showQuestion(qIndex + 1);
+function nextStep() {
+  if (!validateStep(steps[stepIndex])) return;
+  if (stepIndex >= steps.length - 1) { show('contact'); return; }
+  showStep(stepIndex + 1);
 }
 
-function prevQuestion() {
-  if (qIndex <= 0) { show('home'); return; }
-  showQuestion(qIndex - 1);
+function prevStep() {
+  if (stepIndex <= 0) { show('home'); return; }
+  showStep(stepIndex - 1);
 }
 
-function enterBrief() { show('brief'); showQuestion(0); }
+function enterBrief() { show('brief'); showStep(0); }
 
 async function submit() {
   $('#contact-err').textContent = '';
@@ -671,14 +708,14 @@ const scrollDown = () => {
 };
 $('#see-how').onclick = scrollDown;
 $('#scroll-cue-btn').onclick = scrollDown;
-$('#brief-back').onclick = prevQuestion;
-$('#brief-next').onclick = nextQuestion;
-$('#contact-back').onclick = () => { show('brief'); showQuestion(qIndex); };
+$('#brief-back').onclick = prevStep;
+$('#brief-next').onclick = nextStep;
+$('#contact-back').onclick = () => { show('brief'); showStep(stepIndex); };
 $('#submit').onclick = submit;
 $('#restart').onclick = restart;
-// Enter advances to the next question (but not inside a textarea).
+// Enter advances to the next step (but not inside a textarea).
 $('#brief-form').addEventListener('keydown', (e) => {
-  if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') { e.preventDefault(); nextQuestion(); }
+  if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') { e.preventDefault(); nextStep(); }
 });
 loadSchema(navigator.language || 'en', true);
 </script>

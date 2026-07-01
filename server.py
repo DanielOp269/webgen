@@ -67,6 +67,7 @@ class Handler(BaseHTTPRequestHandler):
                 "lang": lang,
                 "ui": i18n.ui(lang),
                 "questions": i18n.localized_questions(QUESTIONS, lang),
+                "chapters": i18n.chapters_list(lang),
                 "languages": i18n.LANG_NAMES,
             })
         self._json(404, {"error": "not found"})

@@ -84,6 +84,7 @@ UI = {
         "optional": "optional",
         "continue_btn": "Continue →",
         "back_btn": "← Back",
+        "begin_btn": "Let’s begin →",
         "wiz_count": "Question {n} of {total}",
         "part_label": "Part {n} of {total}",
         "err_generic": "Something went wrong. Please try again.",
@@ -155,6 +156,7 @@ UI = {
         "optional": "optional",
         "continue_btn": "Weiter →",
         "back_btn": "← Zurück",
+        "begin_btn": "Los geht's →",
         "wiz_count": "Frage {n} von {total}",
         "part_label": "Teil {n} von {total}",
         "err_generic": "Etwas ist schiefgelaufen. Bitte erneut versuchen.",
@@ -244,6 +246,24 @@ GROUPS = {
            "look": "Overall look", "dynamic": "Dynamic", "color": "Colours"},
     "de": {"you": "Über Sie", "website": "Ihre Website",
            "look": "Aussehen", "dynamic": "Dynamik", "color": "Farben"},
+}
+
+# Chapters — the three top-level parts of the brief. Groups roll up into these,
+# and the wizard shows a divider screen when a new chapter begins.
+GROUP_CHAPTER = {"you": "about", "website": "site",
+                 "look": "design", "dynamic": "design", "color": "design"}
+CHAPTER_ORDER = ["about", "site", "design"]
+CHAPTERS = {
+    "en": {
+        "about": ("About you", "First, a little about you and your business."),
+        "site": ("Your website", "Now — what your website should do for you."),
+        "design": ("The design", "Finally, how it should look and feel."),
+    },
+    "de": {
+        "about": ("Über Sie", "Zuerst etwas über Sie und Ihr Unternehmen."),
+        "site": ("Ihre Website", "Nun — was Ihre Website für Sie tun soll."),
+        "design": ("Das Design", "Zum Schluss: Aussehen und Wirkung."),
+    },
 }
 
 # --------------------------------------------------------------------------
@@ -452,6 +472,12 @@ def group_label(key: str, lang: str) -> str:
     return GROUPS.get(lang, GROUPS[DEFAULT_LANG]).get(key, key)
 
 
+def chapters_list(lang: str) -> list:
+    """Ordered [{key, title, sub}] for the wizard's chapter dividers."""
+    m = CHAPTERS.get(lang, CHAPTERS[DEFAULT_LANG])
+    return [{"key": k, "title": m[k][0], "sub": m[k][1]} for k in CHAPTER_ORDER]
+
+
 def localized_questions(questions: list, lang: str) -> list:
     """Turn the structural QUESTIONS into a display schema for the frontend.
 
@@ -473,6 +499,7 @@ def localized_questions(questions: list, lang: str) -> list:
             "default": q.get("default", ""),
             "group": q.get("group", ""),
             "group_label": group_label(q.get("group", ""), lang),
+            "chapter": GROUP_CHAPTER.get(q.get("group", ""), ""),
         }
         if "options" in q:
             labels = omap.get(q["id"], {})
