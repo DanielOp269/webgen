@@ -11,14 +11,46 @@ for real AI generation is a one-class change with no edits elsewhere.
 
 from __future__ import annotations
 
+import os
+
 from .brief import Brief
 from .render import Direction, render_site
+
+# The reworked brief's `feel` choice → a natural-language tone for the prompt.
+_FEEL_TONE = {
+    "warm": "warm and welcoming",
+    "professional": "professional and trustworthy",
+    "modern": "modern and confident",
+    "classic": "refined and elegant",
+}
+
+
+def _describe_brief(brief: Brief, i18n) -> str:
+    """Compose a natural-language business summary from the brief's answers.
+
+    The reworked brief captures the business as structured choices (+ optional
+    free text) rather than one `industry` blurb, so we stitch the meaningful
+    parts into a paragraph the generation prompt can work from.
+    """
+    lang = brief.lang
+    label = lambda qid, key: i18n.option_label(qid, key, lang)
+    parts = []
+    btype = label("business_type", brief.business_type)
+    parts.append(f"{btype}: {brief.offerings.rstrip('.')}" if brief.offerings else btype)
+    if brief.audience:
+        parts.append("Serving " + ", ".join(label("audience", a) for a in brief.audience))
+    if brief.strengths:
+        parts.append("Known for " + ", ".join(label("strengths", s) for s in brief.strengths))
+    if brief.goal:
+        parts.append("The site should " + ", ".join(label("goal", g) for g in brief.goal))
+    return ". ".join(parts)
 
 
 class Generator:
     """Produces {filename: html} for one Brief + Direction."""
 
     name = "base"
+    variants = 3            # default number of design options a job produces
 
     def generate(self, brief: Brief, direction: Direction) -> dict[str, str]:
         raise NotImplementedError
@@ -61,9 +93,41 @@ class ClaudeGenerator(Generator):
         )
 
 
+class BrowserGenerator(Generator):
+    """Generate a real site by driving claude.ai in a browser (see browser.py).
+
+    Each Direction maps to a distinct prompt aesthetic, so variants look
+    genuinely different. Slow (minutes) and serialized (one browser at a time),
+    so it defaults to a single variant per job.
+    """
+
+    name = "browser"
+    variants = 1
+
+    def generate(self, brief: Brief, direction: Direction) -> dict[str, str]:
+        from . import browser, i18n
+
+        prompt = browser.site_prompt(
+            brief.name, _describe_brief(brief, i18n),
+            tone=_FEEL_TONE.get(brief.feel, "warm and confident"),
+            language=i18n.LANG_NAMES.get(brief.lang, "English"),
+            aesthetic=direction.key,
+        )
+        headless = os.environ.get("WEBGEN_HEADLESS", "").lower() in ("1", "true", "yes")
+        html = browser.generate_html(prompt, refine=browser.REFINE_PROMPT,
+                                     headless=headless)
+        if not html:
+            raise RuntimeError("browser generation produced no HTML")
+        return {"index.html": html}
+
+
 def default_generator() -> Generator:
-    """Pick the best available engine. Template today; auto-upgrades later."""
-    import os
+    """Pick the engine. WEBGEN_ENGINE overrides; else Claude-API-when-keyed, else template."""
+    engine = os.environ.get("WEBGEN_ENGINE", "").lower()
+    if engine == "browser":
+        return BrowserGenerator()
+    if engine in ("template", "offline"):
+        return TemplateGenerator()
 
     key = os.environ.get("ANTHROPIC_API_KEY")
     if key:

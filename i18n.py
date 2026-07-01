@@ -468,6 +468,12 @@ def page_label(key: str, lang: str) -> str:
     return OPTIONS.get(lang, OPTIONS[DEFAULT_LANG])["pages"].get(key, key.title())
 
 
+def option_label(qid: str, key: str, lang: str) -> str:
+    """Human label for a choice value key (e.g. business_type='food' -> 'Food …')."""
+    opts = OPTIONS.get(lang, OPTIONS[DEFAULT_LANG]).get(qid, {})
+    return opts.get(key, key)
+
+
 def group_label(key: str, lang: str) -> str:
     return GROUPS.get(lang, GROUPS[DEFAULT_LANG]).get(key, key)
 
