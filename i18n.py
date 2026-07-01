@@ -13,7 +13,7 @@ This module imports nothing from the package, so others can import it freely.
 from __future__ import annotations
 
 LANGS = ["en", "de"]
-DEFAULT_LANG = "en"
+DEFAULT_LANG = "de"            # German-first: our target audience. English stays available.
 
 LANG_NAMES = {"en": "English", "de": "Deutsch"}
 

@@ -73,10 +73,11 @@ class StubEditor(Editor):
             f'style="width:100%;height:240px;object-fit:cover;border-radius:12px">'
             for u in imgs
         )
+        heading = "Galerie" if brief.lang == "de" else "Gallery"
         gallery = (
             '<section style="padding:72px 24px">'
             '<div style="max-width:1080px;margin:0 auto">'
-            '<h2 style="text-align:center;font-size:32px;margin:0 0 28px">Gallery</h2>'
+            f'<h2 style="text-align:center;font-size:32px;margin:0 0 28px">{heading}</h2>'
             '<div style="display:grid;gap:18px;'
             'grid-template-columns:repeat(auto-fill,minmax(260px,1fr))">'
             f'{tiles}</div></div></section>'

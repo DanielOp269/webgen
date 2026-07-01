@@ -14,12 +14,13 @@ import html
 
 SAMPLES = {
     "restaurant": {
-        "label": "🍝  Restaurant — Bella Vista Trattoria",
+        "label": "🍝  Restaurant — Trattoria Bella Vista",
         "answers": {
-            "name": "Bella Vista Trattoria",
+            "name": "Trattoria Bella Vista",
             "business_type": "food",
-            "offerings": "A family-run Italian trattoria serving wood-fired pizza, "
-                         "hand-made pasta and regional wines in a warm, rustic room.",
+            "offerings": "Familiengeführte italienische Trattoria mit Holzofenpizza, "
+                         "hausgemachter Pasta und regionalen Weinen in gemütlichem "
+                         "Ambiente.",
             "audience": ["families", "locals", "tourists"],
             "strengths": ["quality", "service", "local"],
             "area": "local",
@@ -28,19 +29,19 @@ SAMPLES = {
             "pages": ["home", "about", "services", "gallery", "reviews", "contact"],
             "features": ["booking", "map", "gallery", "reviews"],
             "feel": "warm", "imagery": "photos", "colors": "warm", "theme": "light",
-            "lang": "en",
+            "lang": "de",
         },
         "contact": {"name": "Mario Rossi", "email": "mario@bellavista.example",
                     "phone": "+49 30 1234567"},
     },
     "dentist": {
-        "label": "🦷  Dental practice — Bright Smile Dental",
+        "label": "🦷  Zahnarztpraxis — Praxis am Markt",
         "answers": {
-            "name": "Bright Smile Dental",
+            "name": "Zahnarztpraxis am Markt",
             "business_type": "health",
-            "offerings": "A modern family dental practice offering check-ups, "
-                         "hygiene, cosmetic and emergency care with gentle, "
-                         "anxiety-friendly treatment.",
+            "offerings": "Moderne Familienzahnarztpraxis für Vorsorge, Prophylaxe, "
+                         "ästhetische Zahnheilkunde und Notfälle — sanft und "
+                         "ohne Stress.",
             "audience": ["families", "locals", "older"],
             "strengths": ["quality", "experience", "reliability"],
             "area": "local",
@@ -49,18 +50,18 @@ SAMPLES = {
             "pages": ["home", "about", "services", "reviews", "contact"],
             "features": ["booking", "contactform", "map"],
             "feel": "professional", "imagery": "photos", "colors": "blue",
-            "theme": "light", "lang": "en",
+            "theme": "light", "lang": "de",
         },
-        "contact": {"name": "Dr. Sarah Klein", "email": "hello@brightsmile.example",
+        "contact": {"name": "Dr. Sarah Klein", "email": "praxis@zahnarzt-markt.example",
                     "phone": "+49 89 7654321"},
     },
     "photographer": {
-        "label": "📷  Photographer — Clara Nolan Photography",
+        "label": "📷  Fotografin — Clara Nolan Fotografie",
         "answers": {
-            "name": "Clara Nolan Photography",
+            "name": "Clara Nolan Fotografie",
             "business_type": "professional",
-            "offerings": "Wedding and portrait photography with a natural, "
-                         "documentary style — capturing real moments, beautifully.",
+            "offerings": "Hochzeits- und Porträtfotografie in natürlichem, "
+                         "dokumentarischem Stil — echte Momente, schön festgehalten.",
             "audience": ["young", "families"],
             "strengths": ["quality", "experience", "service"],
             "area": "region",
@@ -69,7 +70,7 @@ SAMPLES = {
             "pages": ["home", "about", "gallery", "pricing", "contact"],
             "features": ["gallery", "contactform"],
             "feel": "modern", "imagery": "photos", "colors": "elegant",
-            "theme": "dark", "lang": "en",
+            "theme": "dark", "lang": "de",
         },
         "contact": {"name": "Clara Nolan", "email": "studio@claranolan.example",
                     "phone": "+49 40 5551020"},
