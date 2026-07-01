@@ -181,7 +181,10 @@ UI = {
                                "and come back.",
         # inline site editor (edit-what-you-see)
         "console_edit_open": "✏️ Edit my website",
-        "console_edit_hint": "Editing your website — click any text to change it, then Save",
+        "console_edit_hint": "Editing your website — click any text or photo to "
+                             "change it, then Save",
+        "console_uploading": "Uploading your photo…",
+        "console_photo_done": "Photo added ✓  — don't forget to Save",
         "console_edit_save": "Save changes",
         "console_edit_exit": "Done",
         "console_edit_saved": "Saved ✓  Your website is updated",
@@ -339,7 +342,9 @@ UI = {
         # Inline-Editor (bearbeiten, was Sie sehen)
         "console_edit_open": "✏️ Website bearbeiten",
         "console_edit_hint": "Sie bearbeiten Ihre Website — klicken Sie auf einen "
-                             "Text, um ihn zu ändern, dann Speichern",
+                             "Text oder ein Foto, um ihn zu ändern, dann Speichern",
+        "console_uploading": "Ihr Foto wird hochgeladen…",
+        "console_photo_done": "Foto hinzugefügt ✓  — nicht vergessen zu speichern",
         "console_edit_save": "Änderungen speichern",
         "console_edit_exit": "Fertig",
         "console_edit_saved": "Gespeichert ✓  Ihre Website ist aktualisiert",

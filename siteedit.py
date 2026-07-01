@@ -36,6 +36,8 @@ _LAYER = """
   [data-wg-edit]:hover { outline: 2px dashed #3b82f6; outline-offset: 3px;
     cursor: text; border-radius: 2px; }
   [data-wg-edit]:focus { outline: 2px solid #2563eb; outline-offset: 3px; }
+  [data-wg-photo]:hover { outline: 2px dashed #16a34a; outline-offset: 3px;
+    cursor: pointer; }
   #__wg_toast { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%);
     background: #16a34a; color: #fff; padding: 13px 22px; border-radius: 12px;
     z-index: 2147483000; font: 600 15px sans-serif; opacity: 0;
@@ -48,6 +50,7 @@ _LAYER = """
   <button id="__wg_save" type="button">%%SAVE%%</button>
 </div>
 <div id="__wg_toast"></div>
+<input id="__wg_file" type="file" accept="image/*" style="display:none">
 <script id="__wg_script">
 (function () {
   var SEL = 'h1,h2,h3,h4,h5,h6,p,a,span,li,button,blockquote,figcaption,' +
@@ -67,6 +70,49 @@ _LAYER = """
     if (el && (el.tagName === 'A' || el.tagName === 'BUTTON')) e.preventDefault();
   }, true);
 
+  // ---- photos: click an image (or image area) to upload a replacement ----
+  function bgImage(el) {
+    var b = getComputedStyle(el).backgroundImage;
+    return b && b !== 'none' ? b : '';
+  }
+  document.querySelectorAll('img').forEach(function (el) {
+    if (el.closest('#__wg_bar')) return;
+    el.setAttribute('data-wg-photo', 'img');
+  });
+  document.querySelectorAll('div,section,header,figure,a,span').forEach(function (el) {
+    if (el.closest('#__wg_bar') || el.hasAttribute('data-wg-photo')) return;
+    var r = el.getBoundingClientRect();
+    if (r.width < 110 || r.height < 90) return;             // big blocks only
+    if ((el.textContent || '').trim()) return;              // no text inside
+    if (el.querySelector('img,section,ul,ol,form,h1,h2,h3,p')) return;
+    if (!bgImage(el)) return;                               // has an image/gradient bg
+    el.setAttribute('data-wg-photo', 'bg');
+  });
+
+  var fileInput = document.getElementById('__wg_file'), photoTarget = null;
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest('[data-wg-photo]');
+    if (!el) return;
+    e.preventDefault();
+    photoTarget = el; fileInput.value = ''; fileInput.click();
+  }, true);
+  fileInput.addEventListener('change', function () {
+    var f = fileInput.files && fileInput.files[0], t = photoTarget;
+    if (!f || !t) return;
+    toast(%%UPLOADING%%, true);
+    fetch(%%UPLOAD_URL%%, {
+      method: 'POST', headers: { 'Content-Type': f.type || 'application/octet-stream' },
+      body: f
+    }).then(function (r) { return r.json(); }).then(function (j) {
+      if (j && j.ok && j.url) {
+        if (t.getAttribute('data-wg-photo') === 'img') { t.src = j.url; t.removeAttribute('srcset'); }
+        else { t.style.backgroundImage = "url('" + j.url + "')";
+               t.style.backgroundSize = 'cover'; t.style.backgroundPosition = 'center'; }
+        toast(%%PHOTO_DONE%%, true);
+      } else { toast(%%SAVEFAIL%%, false); }
+    }).catch(function () { toast(%%SAVEFAIL%%, false); });
+  });
+
   function toast(msg, ok) {
     var t = document.getElementById('__wg_toast');
     t.textContent = msg; t.style.background = ok ? '#16a34a' : '#dc2626';
@@ -74,11 +120,14 @@ _LAYER = """
   }
   document.getElementById('__wg_save').addEventListener('click', function () {
     var clone = document.documentElement.cloneNode(true);
-    ['__wg_bar', '__wg_toast', '__wg_style', '__wg_script'].forEach(function (id) {
+    ['__wg_bar', '__wg_toast', '__wg_style', '__wg_script', '__wg_file'].forEach(function (id) {
       var n = clone.querySelector('#' + id); if (n) n.remove();
     });
     clone.querySelectorAll('[data-wg-edit]').forEach(function (el) {
       el.removeAttribute('data-wg-edit'); el.removeAttribute('contenteditable');
+    });
+    clone.querySelectorAll('[data-wg-photo]').forEach(function (el) {
+      el.removeAttribute('data-wg-photo');
     });
     clone.querySelectorAll('style').forEach(function (s) {
       if ((s.textContent || '').indexOf('margin-top: 60px') !== -1) s.remove();
@@ -125,7 +174,10 @@ def render_editor(page_html: str, lead_id: str, filename: str, lang: str,
     for k, v in {
         "%%SAVED%%": U["console_edit_saved"],
         "%%SAVEFAIL%%": U["console_edit_savefail"],
+        "%%UPLOADING%%": U["console_uploading"],
+        "%%PHOTO_DONE%%": U["console_photo_done"],
         "%%SAVE_URL%%": f"/c/{lead_id}/save-site",
+        "%%UPLOAD_URL%%": f"/c/{lead_id}/upload",
         "%%FILE%%": filename,
     }.items():
         layer = layer.replace(k, json.dumps(v))

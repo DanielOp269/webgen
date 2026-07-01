@@ -18,7 +18,7 @@ import zipfile
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlsplit
 
-from . import console, i18n, siteedit
+from . import console, i18n, siteedit, uploads
 from .agent import JobStore
 from .brief import Brief, QUESTIONS
 from .leads import Contact, LeadStore
@@ -143,6 +143,14 @@ class Handler(BaseHTTPRequestHandler):
             return self._html(200, siteedit.render_editor(
                 v.files["index.html"], lead_id, "index.html", lang, embed))
 
+        # /c/<lead_id>/img/<name>  → a customer-uploaded image (editor + live site)
+        if len(parts) >= 4 and parts[2] == "img":
+            res = uploads.read_image(lead_id, parts[3])
+            if res is None:
+                return self._json(404, {"error": "not found"})
+            data, ctype = res
+            return self._send(200, data, ctype)
+
         # everything below needs a finished variant to serve
         variant = None
         if len(parts) >= 4 and parts[2] == "v" and job:
@@ -202,6 +210,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._console_edit(path)
         if path.startswith("/c/") and path.endswith("/save-site"):
             return self._console_save_site(path)
+        if path.startswith("/c/") and path.endswith("/upload"):
+            return self._console_upload(path)
         if path != "/api/submit":
             return self._json(404, {"error": "not found"})
         try:
@@ -247,6 +257,18 @@ class Handler(BaseHTTPRequestHandler):
         job = JOBS.save_site(lead_id, payload.get("file", "index.html"),
                              payload.get("html", ""))
         self._json(200 if job else 400, {"ok": bool(job)})
+
+    def _console_upload(self, path: str):
+        """POST /c/<lead_id>/upload — raw image bytes from the editor."""
+        lead_id = path.strip("/").split("/")[1]
+        length = int(self.headers.get("Content-Length", 0))
+        if length <= 0 or length > uploads.MAX_BYTES:
+            return self._json(413, {"ok": False})
+        data = self.rfile.read(length)
+        name = uploads.save_image(lead_id, data, self.headers.get("Content-Type", ""))
+        if not name:
+            return self._json(400, {"ok": False})
+        self._json(200, {"ok": True, "url": f"/c/{lead_id}/img/{name}"})
 
     def _redirect(self, location: str):
         # POST→redirect→GET so a refresh doesn't re-submit.
