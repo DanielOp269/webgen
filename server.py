@@ -18,7 +18,7 @@ import zipfile
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlsplit
 
-from . import console, i18n
+from . import console, i18n, siteedit
 from .agent import JobStore
 from .brief import Brief, QUESTIONS
 from .leads import Contact, LeadStore
@@ -133,6 +133,14 @@ class Handler(BaseHTTPRequestHandler):
             code = 200 if lead else 404
             return self._html(code, console.render_page(lead, job, lang))
 
+        # /c/<lead_id>/editor  → the chosen site with the inline editing layer
+        if len(parts) >= 3 and parts[2] == "editor":
+            v = job.variant(job.chosen) if job and job.chosen else None
+            if v is None or "index.html" not in v.files:
+                return self._json(404, {"error": "not found"})
+            return self._html(200, siteedit.render_editor(
+                v.files["index.html"], lead_id, "index.html", lang))
+
         # everything below needs a finished variant to serve
         variant = None
         if len(parts) >= 4 and parts[2] == "v" and job:
@@ -190,6 +198,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._console_choose(path)
         if path.startswith("/c/") and path.endswith("/edit"):
             return self._console_edit(path)
+        if path.startswith("/c/") and path.endswith("/save-site"):
+            return self._console_save_site(path)
         if path != "/api/submit":
             return self._json(404, {"error": "not found"})
         try:
@@ -223,6 +233,18 @@ class Handler(BaseHTTPRequestHandler):
         instruction = (form.get("instruction") or [""])[0]
         JOBS.request_edit(lead_id, instruction)  # None (empty/no choice) → just redirect
         self._redirect(f"/c/{lead_id}")
+
+    def _console_save_site(self, path: str):
+        """POST /c/<lead_id>/save-site {file, html} — the inline editor saving."""
+        lead_id = path.strip("/").split("/")[1]
+        try:
+            length = int(self.headers.get("Content-Length", 0))
+            payload = json.loads(self.rfile.read(length) or b"{}")
+        except Exception:                       # noqa: BLE001
+            return self._json(400, {"ok": False, "error": "bad request"})
+        job = JOBS.save_site(lead_id, payload.get("file", "index.html"),
+                             payload.get("html", ""))
+        self._json(200 if job else 400, {"ok": bool(job)})
 
     def _redirect(self, location: str):
         # POST→redirect→GET so a refresh doesn't re-submit.

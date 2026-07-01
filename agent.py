@@ -347,6 +347,26 @@ class JobStore:
         self._save(job)                         # atomic re-write of the job file
         return job
 
+    def save_site(self, lead_id: str, filename: str, html: str) -> Job | None:
+        """Replace one file of a lead's chosen site with customer-edited HTML.
+
+        Used by the inline editor (edit-what-you-see). Only overwrites a file
+        that already exists on the chosen variant. Returns None if there's no
+        chosen job or the file/html is invalid.
+        """
+        if not html or "<" not in html:
+            return None
+        job = self.for_lead(lead_id)
+        if not job or not job.chosen:
+            return None
+        v = job.variant(job.chosen)
+        if v is None or filename not in v.files:
+            return None
+        with job._lock:
+            v.files[filename] = html
+        self._save(job)
+        return job
+
     def request_edit(self, lead_id: str, instruction: str) -> Job | None:
         """Queue a plain-language edit for a lead's chosen site. Persist it so
         the (separate) worker process picks it up. Returns None if there's no

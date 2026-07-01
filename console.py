@@ -77,9 +77,10 @@ main { padding: 24px 0 64px; }
    background: #16a34a; color: #fff; font-size: 26px; font-weight: 700;
    display: flex; align-items: center; justify-content: center; margin-bottom: 14px; }
 .hero.confirmed h1 { color: #15803d; }
-.hero.confirmed .btn.live { background: #16a34a; margin-top: 18px; padding: 13px 24px;
-   font-size: 16px; }
-.hero.confirmed .btn.live:hover { filter: brightness(1.05); }
+.hero.confirmed .cta-row { display: flex; gap: 12px; align-items: center;
+   flex-wrap: wrap; margin-top: 18px; }
+.hero.confirmed .btn.edit { background: #16a34a; padding: 13px 24px; font-size: 16px; }
+.hero.confirmed .btn.edit:hover { filter: brightness(1.05); }
 .editbox { margin-top: 26px; max-width: 560px; background: #fff;
    border: 1px solid #e2e8f0; border-radius: 14px; padding: 18px; text-align: left; }
 .editbox label { display: block; font-weight: 600; font-size: 15px;
@@ -215,8 +216,11 @@ def render_page(lead: Lead | None, job: Job | None, lang: str) -> str:
   <div class="check">✓</div>
   <h1>{_esc(heading)}</h1>
   <p>{_esc(sub_msg)}</p>
-  <a class="btn primary live" href="/site/{_esc(lead.id)}/" target="_blank"
-     rel="noopener">{_esc(U['console_visit'])}</a>
+  <div class="cta-row">
+    <a class="btn primary edit" href="/c/{_esc(lead.id)}/editor">{_esc(U['console_edit_open'])}</a>
+    <a class="btn ghost" href="/site/{_esc(lead.id)}/" target="_blank"
+       rel="noopener">{_esc(U['console_visit'])}</a>
+  </div>
   {edit_box}
 </div></section>"""
     else:

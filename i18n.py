@@ -138,6 +138,13 @@ UI = {
         "console_editing_sub": "Hang tight — we're updating your website now. "
                                "This page updates automatically, so you can leave "
                                "and come back.",
+        # inline site editor (edit-what-you-see)
+        "console_edit_open": "✏️ Edit my website",
+        "console_edit_hint": "Editing your website — click any text to change it, then Save",
+        "console_edit_save": "Save changes",
+        "console_edit_exit": "Done",
+        "console_edit_saved": "Saved ✓  Your website is updated",
+        "console_edit_savefail": "Sorry — we couldn't save. Please try again.",
         "console_pending_h": "We're preparing your options",
         "console_pending_sub": "Our team is designing your website now. This page "
                                "will update automatically — you can safely leave "
@@ -247,6 +254,14 @@ UI = {
         "console_editing_sub": "Einen Moment — wir aktualisieren gerade Ihre "
                                "Website. Diese Seite aktualisiert sich automatisch, "
                                "Sie können sie also verlassen und später zurückkehren.",
+        # Inline-Editor (bearbeiten, was Sie sehen)
+        "console_edit_open": "✏️ Website bearbeiten",
+        "console_edit_hint": "Sie bearbeiten Ihre Website — klicken Sie auf einen "
+                             "Text, um ihn zu ändern, dann Speichern",
+        "console_edit_save": "Änderungen speichern",
+        "console_edit_exit": "Fertig",
+        "console_edit_saved": "Gespeichert ✓  Ihre Website ist aktualisiert",
+        "console_edit_savefail": "Leider konnten wir nicht speichern. Bitte erneut versuchen.",
         "console_pending_h": "Wir bereiten Ihre Optionen vor",
         "console_pending_sub": "Unser Team gestaltet gerade Ihre Website. Diese "
                                "Seite aktualisiert sich automatisch — Sie können "
