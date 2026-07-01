@@ -39,8 +39,10 @@ class Task:
 class Job:
     """One generation run. Owns the task list, progress, and resulting variants."""
 
-    def __init__(self, brief: Brief, generator: Generator, n: int = 3):
+    def __init__(self, brief: Brief, generator: Generator, n: int = 3,
+                 lead_id: str | None = None):
         self.id = uuid.uuid4().hex[:12]
+        self.lead_id = lead_id          # the Lead this job was generated for (if any)
         self.brief = brief
         self.generator = generator
         self.engine_name = generator.name if generator else "?"
@@ -90,10 +92,14 @@ class Job:
                 self._advance(t, "running")
                 files = self.generator.generate(self.brief, d)
                 title, blurb = i18n.direction_label(d.key, self.brief.lang)
+                # Reflect the pages actually produced (a browser variant is a
+                # single index.html, the template engine emits every brief page).
+                pages = [pk for pk in self.brief.pages
+                         if ("index.html" if pk == "home" else pk + ".html") in files]
                 with self._lock:
                     self.variants.append(Variant(
                         key=d.key, title=title, blurb=blurb, accent=d.accent,
-                        files=files, pages=list(self.brief.pages),
+                        files=files, pages=pages or list(self.brief.pages),
                     ))
                 self._advance(t, "done")
 
@@ -156,6 +162,7 @@ class Job:
         with self._lock:
             return {
                 "id": self.id,
+                "lead_id": self.lead_id,
                 "status": self.status,
                 "error": self.error,
                 "engine": self.engine_name,
@@ -170,6 +177,7 @@ class Job:
         """Rebuild a finished job from disk (no generator, never re-runs)."""
         job = cls.__new__(cls)
         job.id = data["id"]
+        job.lead_id = data.get("lead_id")
         job.brief = Brief(**data["brief"])
         job.generator = None
         job.engine_name = data.get("engine", "?")
@@ -221,8 +229,12 @@ class JobStore:
             json.dump(job.to_dict(), fh)
         os.replace(tmp, self._path(job.id))
 
-    def create(self, brief: Brief, generator: Generator | None = None, n: int = 3) -> Job:
-        job = Job(brief, generator or default_generator(), n=n)
+    def create(self, brief: Brief, generator: Generator | None = None,
+               n: int | None = None, lead_id: str | None = None) -> Job:
+        gen = generator or default_generator()
+        if n is None:
+            n = getattr(gen, "variants", 3)
+        job = Job(brief, gen, n=n, lead_id=lead_id)
         job.on_done = self._save                # persist when the run finishes
         with self._lock:
             self._jobs[job.id] = job
@@ -232,3 +244,8 @@ class JobStore:
     def get(self, job_id: str) -> Job | None:
         with self._lock:
             return self._jobs.get(job_id)
+
+    def all(self) -> list[Job]:
+        """All jobs (live + restored), newest first."""
+        with self._lock:
+            return sorted(self._jobs.values(), key=lambda j: j.created, reverse=True)

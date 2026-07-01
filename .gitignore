@@ -1,9 +1,23 @@
 # Runtime job store (per-user generated data, not source)
 data/jobs/
+data/leads/
 
 # Python
 __pycache__/
 *.py[cod]
+.venv/
+venv/
+
+# Browser automation: logged-in claude.ai profile (cookies/session — never commit)
+browser_profile/
+
+# Browser-automation scratch output
+_diag/
+out.html
+out2.html
+
+# Session handoff note (local, per-session)
+.claude/last-session.md
 
 # macOS
 .DS_Store

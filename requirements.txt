@@ -1,0 +1,4 @@
+# Browser automation for the claude.ai generation engine.
+# Install:  pip install -r requirements.txt  &&  playwright install chromium
+# (on a Linux server also run: playwright install-deps chromium)
+playwright==1.61.0
