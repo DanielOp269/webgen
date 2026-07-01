@@ -182,9 +182,21 @@
   .wiz-section { color:var(--accent); font-size:13px; font-weight:600; letter-spacing:.06em;
                  text-transform:uppercase; min-height:16px; }
   .qslide { display:none; }
-  .qslide.on { display:block; animation:qfade .35s ease; }
+  .qslide.on { display:block; }
+  /* dynamic vertical motion between screens: forward rises from below, back drops from above */
+  .qslide.on.fwd  { animation:slideUpIn   .5s cubic-bezier(.22,1,.36,1); }
+  .qslide.on.back { animation:slideDownIn .5s cubic-bezier(.22,1,.36,1); }
+  /* a bigger move when entering a new category (chapter divider) */
+  .qslide.intro.on.fwd  { animation:chapUpIn   .62s cubic-bezier(.22,1,.36,1); }
+  .qslide.intro.on.back { animation:chapDownIn .62s cubic-bezier(.22,1,.36,1); }
   #brief-form .qslide label { font-size:20px; font-weight:600; margin:14px 0 16px; }
-  @keyframes qfade { from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:none} }
+  @keyframes slideUpIn   { from{opacity:0; transform:translateY(52px);  filter:blur(6px)} to{opacity:1; transform:none; filter:blur(0)} }
+  @keyframes slideDownIn { from{opacity:0; transform:translateY(-52px); filter:blur(6px)} to{opacity:1; transform:none; filter:blur(0)} }
+  @keyframes chapUpIn    { from{opacity:0; transform:translateY(96px) scale(.96);  filter:blur(9px)} to{opacity:1; transform:none; filter:blur(0)} }
+  @keyframes chapDownIn  { from{opacity:0; transform:translateY(-96px) scale(.96); filter:blur(9px)} to{opacity:1; transform:none; filter:blur(0)} }
+  @media (prefers-reduced-motion:reduce){
+    .qslide.on.fwd, .qslide.on.back, .qslide.intro.on.fwd, .qslide.intro.on.back { animation:none; }
+  }
 
   /* chapter divider slide */
   .qslide.intro { text-align:center; padding:30px 0 16px; }
@@ -540,7 +552,7 @@ function collect() {
 }
 
 // ---- Brief wizard: chaptered, one screen at a time ----
-let steps = [], stepIndex = 0;
+let steps = [], stepIndex = 0, stepDir = 1;   // stepDir: 1 = forward (up), -1 = back (down)
 
 function chapterOfStep(s) { return s.type === 'intro' ? s.chapter : SCHEMA[s.qi].chapter; }
 
@@ -548,7 +560,10 @@ function showStep(i) {
   const slides = $('#brief-form').children;
   if (!slides.length) return;
   stepIndex = Math.max(0, Math.min(i, steps.length - 1));
-  [...slides].forEach((s, idx) => s.classList.toggle('on', idx === stepIndex));
+  [...slides].forEach((s, idx) => {
+    s.classList.remove('on', 'fwd', 'back');
+    if (idx === stepIndex) s.classList.add('on', stepDir >= 0 ? 'fwd' : 'back');
+  });
   renderChapters();
   const step = steps[stepIndex];
   const isIntro = step.type === 'intro';
@@ -594,16 +609,18 @@ function validateStep(step) {
 
 function nextStep() {
   if (!validateStep(steps[stepIndex])) return;
+  stepDir = 1;
   if (stepIndex >= steps.length - 1) { show('contact'); return; }
   showStep(stepIndex + 1);
 }
 
 function prevStep() {
+  stepDir = -1;
   if (stepIndex <= 0) { show('home'); return; }
   showStep(stepIndex - 1);
 }
 
-function enterBrief() { show('brief'); showStep(0); }
+function enterBrief() { stepDir = 1; show('brief'); showStep(0); }
 
 async function submit() {
   $('#contact-err').textContent = '';
@@ -710,7 +727,7 @@ $('#see-how').onclick = scrollDown;
 $('#scroll-cue-btn').onclick = scrollDown;
 $('#brief-back').onclick = prevStep;
 $('#brief-next').onclick = nextStep;
-$('#contact-back').onclick = () => { show('brief'); showStep(stepIndex); };
+$('#contact-back').onclick = () => { stepDir = -1; show('brief'); showStep(stepIndex); };
 $('#submit').onclick = submit;
 $('#restart').onclick = restart;
 // Enter advances to the next step (but not inside a textarea).
