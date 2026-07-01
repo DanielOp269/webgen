@@ -43,6 +43,7 @@ class Job:
                  lead_id: str | None = None):
         self.id = uuid.uuid4().hex[:12]
         self.lead_id = lead_id          # the Lead this job was generated for (if any)
+        self.chosen: str | None = None  # variant key the customer picked (console)
         self.brief = brief
         self.generator = generator
         self.engine_name = generator.name if generator else "?"
@@ -169,6 +170,7 @@ class Job:
             return {
                 "id": self.id,
                 "lead_id": self.lead_id,
+                "chosen": self.chosen,
                 "status": self.status,
                 "error": self.error,
                 "engine": self.engine_name,
@@ -184,6 +186,7 @@ class Job:
         job = cls.__new__(cls)
         job.id = data["id"]
         job.lead_id = data.get("lead_id")
+        job.chosen = data.get("chosen")
         job.brief = Brief(**data["brief"])
         job.generator = None
         job.engine_name = data.get("engine", "?")
@@ -272,6 +275,22 @@ class JobStore:
                 continue
             with self._lock:
                 self._jobs.setdefault(job.id, job)
+
+    def set_choice(self, lead_id: str, variant_key: str) -> Job | None:
+        """Record the variant a customer picked in the console; persist it.
+
+        Returns the updated job, or None if there's no finished job for the lead
+        or the variant key is unknown (so the caller can 404 cleanly).
+        """
+        job = self.for_lead(lead_id)
+        if not job or job.status != "done" or job.variant(variant_key) is None:
+            return None
+        with job._lock:
+            job.chosen = variant_key
+        self._save(job)                         # atomic re-write of the job file
+        with self._lock:
+            self._jobs[job.id] = job
+        return job
 
     def for_lead(self, lead_id: str, refresh: bool = True) -> Job | None:
         """Newest job generated for a lead (read fresh from disk by default)."""

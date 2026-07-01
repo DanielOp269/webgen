@@ -47,6 +47,10 @@ main { padding: 24px 0 64px; }
         margin-top: 24px; }
 .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px;
         overflow: hidden; display: flex; flex-direction: column; }
+.card.is-chosen { border-color: #16a34a; box-shadow: 0 0 0 3px #16a34a22; }
+.badge { display: inline-block; font-size: 12px; font-weight: 700; color: #16a34a;
+         background: #16a34a14; border-radius: 999px; padding: 2px 10px;
+         vertical-align: middle; }
 .card .frame { position: relative; height: 300px; background: #f8fafc;
                border-bottom: 1px solid #e2e8f0; overflow: hidden; }
 .card .frame iframe { position: absolute; top: 0; left: 0;
@@ -62,9 +66,17 @@ main { padding: 24px 0 64px; }
 .dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
 .btn { display: inline-block; border-radius: 10px; padding: 10px 16px;
        font-weight: 600; font-size: 14px; cursor: pointer; text-decoration: none; }
-.btn.primary { background: #2563eb; color: #fff; }
+.btn.primary { background: #2563eb; color: #fff; border: 0; font: inherit;
+               font-weight: 600; }
 .btn.primary:hover { filter: brightness(1.07); }
+.btn.primary.chosen { background: #16a34a; cursor: default; }
 .btn.ghost { color: #2563eb; }
+.actions form { margin: 0; }
+.hero.confirmed { padding-top: 40px; }
+.hero.confirmed .check { width: 46px; height: 46px; border-radius: 50%;
+   background: #16a34a; color: #fff; font-size: 26px; font-weight: 700;
+   display: flex; align-items: center; justify-content: center; margin-bottom: 14px; }
+.hero.confirmed h1 { color: #15803d; }
 .state { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px;
          padding: 48px 40px; text-align: center; margin-top: 32px; }
 .state h1 { font-size: 26px; margin-bottom: 10px; }
@@ -112,9 +124,20 @@ def _state_page(lang: str, brand: str, sub: str, heading: str, message: str,
 
 
 def _variant_card(lead: Lead, v_key: str, title: str, blurb: str, accent: str,
-                  U: dict) -> str:
+                  chosen: bool, U: dict) -> str:
     base = f"/c/{_esc(lead.id)}/v/{_esc(v_key)}"
-    return f"""<div class="card">
+    badge = (f'<span class="badge">{_esc(U["console_chosen_badge"])}</span>'
+             if chosen else "")
+    # The primary action is choosing. A chosen card shows a settled "Selected"
+    # state instead of the button; other cards let the customer switch to them.
+    if chosen:
+        choose = f'<span class="btn primary chosen">{_esc(U["console_selected"])}</span>'
+    else:
+        choose = (f'<form method="post" action="/c/{_esc(lead.id)}/choose">'
+                  f'<input type="hidden" name="variant" value="{_esc(v_key)}">'
+                  f'<button class="btn primary" type="submit">'
+                  f'{_esc(U["console_choose"])}</button></form>')
+    return f"""<div class="card{' is-chosen' if chosen else ''}">
   <div class="frame">
     <iframe src="{base}/site/index.html" loading="lazy" scrolling="no"
             title="{_esc(title)}"></iframe>
@@ -122,10 +145,10 @@ def _variant_card(lead: Lead, v_key: str, title: str, blurb: str, accent: str,
        rel="noopener" aria-label="{_esc(U['console_open'])}"></a>
   </div>
   <div class="body">
-    <h3><span class="dot" style="background:{_esc(accent)}"></span> {_esc(title)}</h3>
+    <h3><span class="dot" style="background:{_esc(accent)}"></span> {_esc(title)} {badge}</h3>
     <p>{_esc(blurb)}</p>
     <div class="actions">
-      <a class="btn primary" href="{base}.zip">{_esc(U['console_download'])}</a>
+      {choose}
       <a class="btn ghost" href="{base}/site/index.html" target="_blank"
          rel="noopener">{_esc(U['console_open'])}</a>
     </div>
@@ -153,13 +176,29 @@ def render_page(lead: Lead | None, job: Job | None, lang: str) -> str:
         return _state_page(lang, brand, sub, U["console_error_h"],
                            U["console_error_sub"], spinner=False, refresh=False)
 
+    chosen = job.chosen
     cards = "".join(
-        _variant_card(lead, v.key, v.title, v.blurb, v.accent, U)
+        _variant_card(lead, v.key, v.title, v.blurb, v.accent,
+                      chosen == v.key, U)
         for v in job.variants
     )
-    body = f"""<section class="hero"><div class="wrap">
+
+    if chosen and job.variant(chosen):
+        # Confirmation banner leads; the grid stays below so they can switch.
+        title = job.variant(chosen).title
+        heading = U["console_chosen_h"]
+        sub_msg = U["console_chosen_sub"].format(title=title)
+        hero = f"""<section class="hero confirmed"><div class="wrap">
+  <div class="check">✓</div>
+  <h1>{_esc(heading)}</h1>
+  <p>{_esc(sub_msg)}</p>
+</div></section>"""
+    else:
+        hero = f"""<section class="hero"><div class="wrap">
   <h1>{_esc(U['console_ready_h'])}</h1>
   <p>{_esc(U['console_ready_sub'])}</p>
-</div></section>
+</div></section>"""
+
+    body = f"""{hero}
 <main><div class="wrap"><div class="grid">{cards}</div></div></main>"""
     return _shell(lang, brand, sub, body, refresh=False)

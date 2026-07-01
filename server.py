@@ -149,6 +149,8 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         path = urlsplit(self.path).path
+        if path.startswith("/c/") and path.endswith("/choose"):
+            return self._console_choose(path)
         if path != "/api/submit":
             return self._json(404, {"error": "not found"})
         try:
@@ -164,6 +166,20 @@ class Handler(BaseHTTPRequestHandler):
             return self._json(400, {"error": f"bad request: {exc}"})
         lead = STORE.create(brief, contact)
         self._json(200, {"ok": True, "lead_id": lead.id})
+
+    def _console_choose(self, path: str):
+        """POST /c/<lead_id>/choose {variant} — record the customer's pick."""
+        lead_id = path.strip("/").split("/")[1]
+        length = int(self.headers.get("Content-Length", 0))
+        form = parse_qs(self.rfile.read(length).decode("utf-8", "replace"))
+        variant = (form.get("variant") or [""])[0]
+        JOBS.set_choice(lead_id, variant)       # None result → still redirect back
+        # POST→redirect→GET so a refresh doesn't re-submit; the console then
+        # renders the confirmed state.
+        self.send_response(303)
+        self.send_header("Location", f"/c/{lead_id}")
+        self.send_header("Content-Length", "0")
+        self.end_headers()
 
 
 def serve(port: int = 8770) -> None:
