@@ -174,23 +174,36 @@
   .card > h2 { font-size:28px; }
   .card > .sub { color:var(--body); margin-top:8px; font-size:17px; }
 
-  /* brief wizard — chaptered, one question at a time */
-  .wiz-chapters { display:flex; gap:8px; margin-bottom:10px; }
-  .chapseg { flex:1; height:6px; background:var(--line); border-radius:999px; overflow:hidden; }
-  .chapseg > span { display:block; height:100%; width:0; background:var(--accent);
-                    border-radius:999px; transition:width .4s cubic-bezier(.4,0,.2,1); }
-  .wiz-section { color:var(--accent); font-size:13px; font-weight:600; letter-spacing:.06em;
-                 text-transform:uppercase; min-height:16px; }
-  .qslide { display:none; }
-  .qslide.on { display:block; animation:qfade .35s ease; }
-  #brief-form .qslide label { font-size:20px; font-weight:600; margin:14px 0 16px; }
-  @keyframes qfade { from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:none} }
-
-  /* chapter divider slide */
-  .qslide.intro { text-align:center; padding:30px 0 16px; }
-  .qslide.intro .chapnum { color:var(--accent); font-size:13px; font-weight:700; letter-spacing:.14em; }
-  .qslide.intro .chaptitle { font-size:clamp(30px,5vw,42px); letter-spacing:-.03em; margin:14px 0 12px; }
-  .qslide.intro .chapsub { color:var(--body); font-size:18px; max-width:32ch; margin:0 auto; line-height:1.4; }
+  /* brief — one box per category (accordion) */
+  .brief-top { max-width:660px; margin:0 auto 8px; }
+  .catboxes { max-width:660px; margin:0 auto; display:flex; flex-direction:column; gap:16px; }
+  .catbox { background:#fff; border:1px solid var(--line); border-radius:var(--radius-lg);
+            box-shadow:var(--shadow); overflow:hidden; transition:opacity .3s, box-shadow .3s; }
+  .catbox.upcoming { opacity:.5; }
+  .catbox.active { box-shadow:0 0 0 2px var(--accent), var(--shadow); }
+  .catbox-head { display:flex; align-items:center; gap:15px; padding:22px 26px; }
+  .catbox.done .catbox-head { cursor:pointer; }
+  .catbox-num { width:34px; height:34px; border-radius:50%; display:grid; place-items:center;
+                font-weight:600; background:var(--bg-alt); color:var(--muted); flex:0 0 auto; transition:all .3s; }
+  .catbox.active .catbox-num { background:var(--accent); color:#fff; }
+  .catbox.done .catbox-num { background:#e7f7ee; color:#128a4b; }
+  .catbox-titles { flex:1; }
+  .catbox-title { font-size:20px; }
+  .catbox-sub { color:var(--muted); font-size:14px; margin-top:2px; }
+  .catbox:not(.active) .catbox-sub { display:none; }
+  .catbox-badge { display:none; align-items:center; gap:9px; color:#128a4b; font-weight:600; font-size:16px; }
+  .catbox.done .catbox-badge { display:inline-flex; animation:badgePop .55s cubic-bezier(.22,1.5,.4,1) both; }
+  .catbox-badge .tick { width:26px; height:26px; border-radius:50%; background:#128a4b; position:relative; flex:0 0 auto; }
+  .catbox-badge .tick::after { content:""; position:absolute; left:9px; top:5px; width:5px; height:10px;
+        border:solid #fff; border-width:0 2px 2px 0; transform:rotate(45deg); }
+  @keyframes badgePop { from{opacity:0; transform:scale(.4)} to{opacity:1; transform:scale(1)} }
+  .catbox-body { padding:0 26px 26px; }
+  .catbox:not(.active) .catbox-body { display:none; }
+  .catbox-sec { color:var(--accent); font-size:12px; font-weight:600; letter-spacing:.06em;
+                text-transform:uppercase; margin:24px 0 -4px; }
+  .qfield label { display:block; font-weight:600; color:var(--ink); font-size:19px; margin:20px 0 12px; }
+  .catbox-err { color:#d70015; margin-top:14px; font-size:15px; }
+  .catbox-next { margin-top:24px; }
 
   /* big tappable choice cards (single = round tick, multi = square tick) */
   .opts { display:flex; flex-direction:column; gap:12px; margin-top:6px; }
@@ -328,17 +341,8 @@
 <!-- ===================== FUNNEL ===================== -->
 <main class="funnel">
   <section id="brief-step" class="step">
-    <div class="card">
-      <div class="wiz-chapters" id="wiz-chapters"></div>
-      <div class="wiz-section" id="wiz-section"></div>
-      <form id="brief-form"></form>
-      <div class="err" id="form-err"></div>
-      <div class="actions">
-        <button class="btn ghost" id="brief-back"></button>
-        <span class="spacer"></span>
-        <button class="btn" id="brief-next"></button>
-      </div>
-    </div>
+    <div class="brief-top"><button class="btn ghost" id="brief-home"></button></div>
+    <div class="catboxes" id="catboxes"></div>
   </section>
 
   <section id="contact-step" class="step">
@@ -436,8 +440,8 @@ function applyUI() {
   set('cta-title', UI.cta_title); set('cta-sub', UI.cta_sub);
   // stepper
   set('step-brief', UI.step_brief); set('step-contact', UI.step_contact); set('step-done', UI.step_done);
-  // brief (one-question-at-a-time wizard)
-  set('brief-back', UI.back_btn); set('brief-next', UI.continue_btn);
+  // brief (category-box accordion)
+  set('brief-home', UI.back_btn);
   // contact
   set('contact-title', UI.contact_title); set('contact-sub', UI.contact_sub);
   set('l-cname', UI.contact_name); set('l-cemail', UI.contact_email);
@@ -457,7 +461,7 @@ async function loadSchema(lang, first) {
   LANG = data.lang; UI = data.ui; SCHEMA = data.questions; chapters = data.chapters || [];
   applyUI();
   buildLangSelect(data.languages);
-  buildForm();
+  buildBoxes();
   if (first) { show('home'); initScroll(); }
   else { show(curStep); if (window.ScrollTrigger) requestAnimationFrame(() => ScrollTrigger.refresh()); }
 }
@@ -491,42 +495,56 @@ function questionHTML(q) {
   return '';
 }
 
-function buildForm() {
-  const form = $('#brief-form');
-  form.innerHTML = '';
-  for (const k of Object.keys(multi)) delete multi[k];
-  for (const k of Object.keys(single)) delete single[k];
-  groups = [...new Set(SCHEMA.map(q => q.group))];
-  steps = [];
-  let lastChapter = null, chapterNo = 0;
-  SCHEMA.forEach((q, qi) => {
-    if (q.chapter !== lastChapter) {          // new chapter -> divider slide
-      lastChapter = q.chapter; chapterNo++;
-      const c = chapters.find(x => x.key === q.chapter) || { title: '', sub: '' };
-      const intro = document.createElement('div');
-      intro.className = 'qslide intro';
-      intro.innerHTML = `<div class="chapnum">${chapterNo} / ${chapters.length}</div>`
-        + `<h2 class="chaptitle">${c.title}</h2><p class="chapsub">${c.sub}</p>`;
-      form.appendChild(intro);
-      steps.push({ type: 'intro', chapter: q.chapter });
-    }
-    const wrap = document.createElement('div');
-    wrap.className = 'qslide';
-    wrap.innerHTML = questionHTML(q);
-    form.appendChild(wrap);
-    steps.push({ type: 'q', qi });
-  });
-  form.querySelectorAll('.opt[data-v]').forEach(b => b.onclick = () => {   // single
+function wireOptions(root) {
+  root.querySelectorAll('.opt[data-v]').forEach(b => b.onclick = () => {   // single choice
     single[b.dataset.q] = b.dataset.v;
     b.parentElement.querySelectorAll('.opt').forEach(x => x.classList.remove('on'));
     b.classList.add('on');
   });
-  form.querySelectorAll('.opt[data-o]').forEach(b => b.onclick = () => {   // multi
+  root.querySelectorAll('.opt[data-o]').forEach(b => b.onclick = () => {   // multi choice
     const set = multi[b.dataset.q];
     if (set.has(b.dataset.o)) set.delete(b.dataset.o); else set.add(b.dataset.o);
     b.classList.toggle('on');
   });
-  showStep(0);
+}
+
+// One box per category (chapter). Fill a box -> it stamps "Done/Erledigt" and
+// auto-scrolls to the next box.
+function buildBoxes() {
+  const wrap = $('#catboxes');
+  wrap.innerHTML = '';
+  for (const k of Object.keys(multi)) delete multi[k];
+  for (const k of Object.keys(single)) delete single[k];
+  activeBox = 0;
+  chapters.forEach((c, ci) => {
+    const qs = SCHEMA.filter(q => q.chapter === c.key);
+    const box = document.createElement('div');
+    box.className = 'catbox ' + (ci === 0 ? 'active' : 'upcoming');
+    let body = '<div class="catbox-body">';
+    let lastGroup = null;
+    qs.forEach(q => {
+      if (c.key === 'design' && q.group !== lastGroup) {   // sub-section labels within design
+        lastGroup = q.group;
+        body += `<div class="catbox-sec">${q.group_label}</div>`;
+      }
+      body += `<div class="qfield">${questionHTML(q)}</div>`;
+    });
+    body += `<div class="catbox-err"></div>`;
+    body += `<button type="button" class="btn catbox-next">${UI.continue_btn}</button>`;
+    body += '</div>';
+    box.innerHTML =
+      `<div class="catbox-head">
+         <span class="catbox-num">${ci + 1}</span>
+         <div class="catbox-titles"><h3 class="catbox-title">${c.title}</h3><p class="catbox-sub">${c.sub}</p></div>
+         <span class="catbox-badge"><span class="tick"></span>${UI.done_badge || 'Done'}</span>
+       </div>` + body;
+    wrap.appendChild(box);
+  });
+  wireOptions(wrap);
+  [...wrap.children].forEach((box, i) => {
+    box.querySelector('.catbox-next').onclick = () => advanceBox(i);
+    box.querySelector('.catbox-head').onclick = () => { if (box.classList.contains('done')) reopenBox(i); };
+  });
 }
 
 function collect() {
@@ -539,71 +557,53 @@ function collect() {
   return a;
 }
 
-// ---- Brief wizard: chaptered, one screen at a time ----
-let steps = [], stepIndex = 0;
+// ---- Brief: category-box accordion ----
+let activeBox = 0;
 
-function chapterOfStep(s) { return s.type === 'intro' ? s.chapter : SCHEMA[s.qi].chapter; }
+function answered(q) {
+  if (q.type === 'multiselect') return multi[q.id] && multi[q.id].size > 0;
+  if (q.type === 'select') return !!single[q.id];
+  const el = $('#f_' + q.id); return !!(el && el.value.trim());
+}
 
-function showStep(i) {
-  const slides = $('#brief-form').children;
-  if (!slides.length) return;
-  stepIndex = Math.max(0, Math.min(i, steps.length - 1));
-  [...slides].forEach((s, idx) => s.classList.toggle('on', idx === stepIndex));
-  renderChapters();
-  const step = steps[stepIndex];
-  const isIntro = step.type === 'intro';
-  $('#wiz-section').textContent = isIntro ? '' : (SCHEMA[step.qi].group_label || '');
-  $('#brief-next').textContent = isIntro ? (UI.begin_btn || 'Begin') : UI.continue_btn;
-  $('#form-err').textContent = '';
-  if (!isIntro) {
-    const inp = slides[stepIndex].querySelector('input,textarea');
-    if (inp) setTimeout(() => inp.focus(), 60);
+function scrollToBox(box) {
+  const y = box.getBoundingClientRect().top + window.scrollY - 78;
+  if (lenis) lenis.scrollTo(y); else window.scrollTo({ top: y, behavior: 'smooth' });
+}
+
+function advanceBox(i) {
+  const boxes = $('#catboxes').children;
+  const box = boxes[i];
+  const qs = SCHEMA.filter(q => q.chapter === chapters[i].key);
+  const missing = qs.filter(q => q.required && !answered(q));
+  const err = box.querySelector('.catbox-err');
+  if (missing.length) {
+    err.textContent = (LANG === 'de' ? 'Bitte ausfüllen: ' : 'Please fill in: ') + missing.map(q => q.label).join(', ');
+    return;
   }
+  err.textContent = '';
+  if (i >= chapters.length - 1) { show('contact'); return; }   // last category -> contact
+  box.classList.remove('active');
+  box.classList.add('done');                                    // stamps "Done/Erledigt"
+  const next = boxes[i + 1];
+  if (next.classList.contains('upcoming')) { next.classList.remove('upcoming'); next.classList.add('active'); }
+  activeBox = i + 1;
+  setTimeout(() => scrollToBox(next), 300);                     // auto-scroll to the next box
 }
 
-function renderChapters() {
-  const order = chapters.map(c => c.key);
-  const curIdx = order.indexOf(chapterOfStep(steps[stepIndex]));
-  $('#wiz-chapters').innerHTML = chapters.map((c, ci) => {
-    let pct = 0;
-    if (ci < curIdx) pct = 100;
-    else if (ci === curIdx) {
-      const idxs = steps.map((s, i) => [s, i]).filter(([s]) => chapterOfStep(s) === c.key).map(([, i]) => i);
-      const first = idxs[0], last = idxs[idxs.length - 1];
-      pct = last > first ? Math.round((stepIndex - first) / (last - first) * 100) : 100;
-      pct = Math.max(8, pct);
-    }
-    return `<div class="chapseg"><span style="width:${pct}%"></span></div>`;
-  }).join('');
+function reopenBox(i) {
+  const box = $('#catboxes').children[i];
+  box.classList.remove('done');
+  box.classList.add('active');
+  activeBox = i;
+  setTimeout(() => scrollToBox(box), 60);
 }
 
-function validateStep(step) {
-  if (step.type !== 'q') return true;
-  const q = SCHEMA[step.qi];
-  if (!q.required) return true;
-  let ok;
-  if (q.type === 'multiselect') ok = multi[q.id] && multi[q.id].size > 0;
-  else if (q.type === 'select') ok = !!single[q.id];
-  else { const el = $('#f_' + q.id); ok = el && el.value.trim(); }
-  if (!ok) {
-    $('#form-err').textContent = (LANG === 'de' ? 'Bitte ausfüllen: ' : 'Please fill in: ') + q.label;
-    return false;
-  }
-  return true;
+function enterBrief() {
+  show('brief');
+  const b = $('#catboxes').children[activeBox];
+  if (b) setTimeout(() => scrollToBox(b), 120);
 }
-
-function nextStep() {
-  if (!validateStep(steps[stepIndex])) return;
-  if (stepIndex >= steps.length - 1) { show('contact'); return; }
-  showStep(stepIndex + 1);
-}
-
-function prevStep() {
-  if (stepIndex <= 0) { show('home'); return; }
-  showStep(stepIndex - 1);
-}
-
-function enterBrief() { show('brief'); showStep(0); }
 
 async function submit() {
   $('#contact-err').textContent = '';
@@ -629,9 +629,9 @@ async function submit() {
 }
 
 function restart() {
-  buildForm();
+  buildBoxes();
   $('#c_name').value = $('#c_email').value = $('#c_phone').value = $('#c_message').value = '';
-  $('#form-err').textContent = $('#contact-err').textContent = '';
+  $('#contact-err').textContent = '';
   show('brief');
 }
 
@@ -708,14 +708,22 @@ const scrollDown = () => {
 };
 $('#see-how').onclick = scrollDown;
 $('#scroll-cue-btn').onclick = scrollDown;
-$('#brief-back').onclick = prevStep;
-$('#brief-next').onclick = nextStep;
-$('#contact-back').onclick = () => { show('brief'); showStep(stepIndex); };
+$('#brief-home').onclick = () => show('home');
+$('#contact-back').onclick = () => {
+  show('brief');
+  const b = $('#catboxes').children[activeBox];
+  if (b) setTimeout(() => scrollToBox(b), 120);
+};
 $('#submit').onclick = submit;
 $('#restart').onclick = restart;
-// Enter advances to the next step (but not inside a textarea).
-$('#brief-form').addEventListener('keydown', (e) => {
-  if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') { e.preventDefault(); nextStep(); }
+// Enter in a text field advances that category box.
+$('#catboxes').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && e.target.tagName === 'INPUT') {
+    e.preventDefault();
+    const box = e.target.closest('.catbox');
+    const i = [...$('#catboxes').children].indexOf(box);
+    if (i >= 0) advanceBox(i);
+  }
 });
 loadSchema(navigator.language || 'en', true);
 </script>
