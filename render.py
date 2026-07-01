@@ -58,12 +58,21 @@ DIRECTIONS: list[Direction] = [
 DIRECTIONS_BY_KEY = {d.key: d for d in DIRECTIONS}
 
 
+# The brief's `feel` (warm/professional/modern/classic) drives which built-in
+# look leads, and which CTA tone the copy uses. Both map onto the fixed sets the
+# template engine + i18n already provide.
+_FEEL_TO_DIRECTION = {"warm": "elegant", "professional": "modern",
+                      "modern": "modern", "classic": "elegant"}
+_FEEL_TO_TONE = {"warm": "friendly", "professional": "professional",
+                 "modern": "playful", "classic": "luxury"}
+
+
 def pick_directions(brief: Brief, n: int = 3) -> list[Direction]:
-    """Choose up to `n` directions, leading with an explicit style preference."""
-    pref = brief.style if brief.style in DIRECTIONS_BY_KEY else None
-    if pref:
+    """Choose up to `n` directions, leading with the brief's `feel` preference."""
+    pref = _FEEL_TO_DIRECTION.get(brief.feel)
+    if pref in DIRECTIONS_BY_KEY:
         ordered = [DIRECTIONS_BY_KEY[pref]] + [d for d in DIRECTIONS if d.key != pref]
-    else:                               # "surprise" → one of each
+    else:                               # unknown/absent → one of each
         ordered = list(DIRECTIONS)
     return ordered[:n]
 
@@ -72,8 +81,21 @@ def pick_directions(brief: Brief, n: int = 3) -> list[Direction]:
 # Copy helpers (the seam a ClaudeGenerator would replace with real copy)
 # --------------------------------------------------------------------------
 
+def _description(brief: Brief) -> str:
+    """One-line business description for hero/about (was the free-text `industry`)."""
+    if brief.offerings:
+        return brief.offerings
+    return i18n.option_label("business_type", brief.business_type, brief.lang)
+
+
+def _tone_key(brief: Brief) -> str:
+    return _FEEL_TO_TONE.get(brief.feel, "friendly")
+
+
 def _services(brief: Brief, S: dict) -> list[str]:
-    return brief.services if brief.services else list(S["fallback_services"])
+    # The reworked brief no longer collects an explicit service list; the built-in
+    # fallbacks keep the offline template presentable.
+    return list(S["fallback_services"])
 
 
 def _esc(s: str) -> str:
@@ -149,9 +171,14 @@ footer {{ border-top: 1px solid {d.muted}22; padding: 36px 0; color: {d.muted};
 """
 
 
+def _buildable_pages(brief: Brief) -> list[str]:
+    """Requested pages we can actually render — avoids nav links to missing files."""
+    return [k for k in brief.pages if k in _PAGE_BUILDERS]
+
+
 def _nav(brief: Brief, d: Direction) -> str:
     links = []
-    for key in brief.pages:
+    for key in _buildable_pages(brief):
         links.append(f'<a href="{_filename(key)}">'
                      f'{_esc(i18n.page_label(key, brief.lang))}</a>')
     return f"""<header class="nav"><div class="wrap">
@@ -167,13 +194,13 @@ def _footer(brief: Brief, S: dict) -> str:
 </div></footer>"""
 
 
-def _hero(brief: Brief, d: Direction) -> str:
-    headline = brief.tagline or brief.name
-    cta = f'<a class="btn" href="{_filename("contact")}">{_esc(brief.cta)}</a>'
+def _hero(brief: Brief, d: Direction, S: dict) -> str:
+    headline = brief.name
+    cta = f'<a class="btn" href="{_filename("contact")}">{_esc(S["default_cta"])}</a>'
     art = '<div class="art"></div>' if d.hero == "split" else ""
     inner = f"""<div>
       <h1>{_esc(headline)}</h1>
-      <p>{_esc(brief.industry)}</p>
+      <p>{_esc(_description(brief))}</p>
       {cta}
     </div>{art}"""
     return f'<section class="hero {d.hero}"><div class="wrap">{inner}</div></section>'
@@ -197,23 +224,23 @@ def _features(brief: Brief, S: dict) -> str:
 
 def _cta_band(brief: Brief, S: dict) -> str:
     return f"""<section class="band"><div class="wrap">
-  <h2>{_esc(S['tone'][brief.tone])}</h2>
+  <h2>{_esc(S['tone'][_tone_key(brief)])}</h2>
   <p class="muted" style="margin-bottom:22px">{_esc(S['band_p'])}</p>
-  <a class="btn" href="{_filename('contact')}">{_esc(brief.cta)}</a>
+  <a class="btn" href="{_filename('contact')}">{_esc(S['default_cta'])}</a>
 </div></section>"""
 
 
 # --- per-page bodies (keyed by page value key) -----------------------------
 
 def _page_home(brief, d, S):
-    return _hero(brief, d) + _features(brief, S) + _cta_band(brief, S)
+    return _hero(brief, d, S) + _features(brief, S) + _cta_band(brief, S)
 
 
 def _page_about(brief, d, S):
     return f"""<section><div class="wrap">
   <span class="eyebrow">{_esc(S['about_eyebrow'])}</span>
   <h2>{_esc(S['about_h2'].format(name=brief.name))}</h2>
-  <p class="lead">{_esc(brief.industry)}</p>
+  <p class="lead">{_esc(_description(brief))}</p>
   <p class="lead" style="margin-top:18px">{_esc(S['about_p2'])}</p>
 </div></section>"""
 
@@ -249,7 +276,7 @@ def _page_pricing(brief, d, S):
         f'<h2 style="margin:6px 0">{"$" * (i + 1)}</h2>'
         f'<p class="muted">{_esc(S["pricing_card_p"])}</p>'
         f'<a class="btn" style="margin-top:14px" href="{_filename("contact")}">'
-        f'{_esc(brief.cta)}</a></div>'
+        f'{_esc(S["default_cta"])}</a></div>'
         for i, t in enumerate(S["pricing_tiers"])
     )
     return f"""<section><div class="wrap">
@@ -262,13 +289,13 @@ def _page_pricing(brief, d, S):
 def _page_contact(brief, d, S):
     return f"""<section><div class="wrap">
   <span class="eyebrow">{_esc(S['contact_eyebrow'])}</span>
-  <h2>{_esc(brief.cta)}</h2>
+  <h2>{_esc(S['default_cta'])}</h2>
   <p class="lead" style="margin-bottom:24px">{_esc(S['contact_lead'])}</p>
   <form class="contact" onsubmit="return false">
     <input placeholder="{_esc(S['form_name'])}" />
     <input placeholder="{_esc(S['form_email'])}" type="email" />
     <textarea placeholder="{_esc(S['form_msg'])}" rows="5"></textarea>
-    <button class="btn" type="submit">{_esc(brief.cta)}</button>
+    <button class="btn" type="submit">{_esc(S['default_cta'])}</button>
   </form>
 </div></section>"""
 
@@ -278,6 +305,7 @@ _PAGE_BUILDERS = {
     "about": _page_about,
     "services": _page_services,
     "portfolio": _page_portfolio,
+    "gallery": _page_portfolio,     # reworked brief renamed portfolio → gallery
     "pricing": _page_pricing,
     "contact": _page_contact,
 }
@@ -288,10 +316,8 @@ def render_site(brief: Brief, d: Direction) -> dict[str, str]:
     S = i18n.site(brief.lang)
     css = _css(d)
     files: dict[str, str] = {}
-    for key in brief.pages:
-        builder = _PAGE_BUILDERS.get(key)
-        if not builder:
-            continue
+    for key in _buildable_pages(brief):
+        builder = _PAGE_BUILDERS[key]
         body = builder(brief, d, S)
         doc = f"""<!doctype html>
 <html lang="{_esc(brief.lang)}"><head>

@@ -16,6 +16,35 @@ import os
 from .brief import Brief
 from .render import Direction, render_site
 
+# The reworked brief's `feel` choice → a natural-language tone for the prompt.
+_FEEL_TONE = {
+    "warm": "warm and welcoming",
+    "professional": "professional and trustworthy",
+    "modern": "modern and confident",
+    "classic": "refined and elegant",
+}
+
+
+def _describe_brief(brief: Brief, i18n) -> str:
+    """Compose a natural-language business summary from the brief's answers.
+
+    The reworked brief captures the business as structured choices (+ optional
+    free text) rather than one `industry` blurb, so we stitch the meaningful
+    parts into a paragraph the generation prompt can work from.
+    """
+    lang = brief.lang
+    label = lambda qid, key: i18n.option_label(qid, key, lang)
+    parts = []
+    btype = label("business_type", brief.business_type)
+    parts.append(f"{btype}: {brief.offerings.rstrip('.')}" if brief.offerings else btype)
+    if brief.audience:
+        parts.append("Serving " + ", ".join(label("audience", a) for a in brief.audience))
+    if brief.strengths:
+        parts.append("Known for " + ", ".join(label("strengths", s) for s in brief.strengths))
+    if brief.goal:
+        parts.append("The site should " + ", ".join(label("goal", g) for g in brief.goal))
+    return ". ".join(parts)
+
 
 class Generator:
     """Produces {filename: html} for one Brief + Direction."""
@@ -79,8 +108,8 @@ class BrowserGenerator(Generator):
         from . import browser, i18n
 
         prompt = browser.site_prompt(
-            brief.name, brief.industry,
-            tone=brief.tone,
+            brief.name, _describe_brief(brief, i18n),
+            tone=_FEEL_TONE.get(brief.feel, "warm and confident"),
             language=i18n.LANG_NAMES.get(brief.lang, "English"),
             aesthetic=direction.key,
         )
