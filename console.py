@@ -17,6 +17,7 @@ same spirit as render.py.
 from __future__ import annotations
 
 import html
+import json
 
 from . import i18n
 from .agent import Job
@@ -170,6 +171,11 @@ body.app { background: #f7f8fa; color: #111827; }
    border-radius: 9px; font: inherit; resize: vertical; margin-bottom: 12px; }
 .change-card textarea:focus { outline: none; border-color: #16a34a;
    box-shadow: 0 0 0 3px #16a34a1f; }
+.filepick { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 12px;
+   font-size: 14px; font-weight: 600; color: #374151; cursor: pointer; }
+.filepick input { font: inherit; font-weight: 400; }
+.filelist { font-size: 13px; color: #15803d; font-weight: 600; margin-bottom: 12px;
+   min-height: 16px; }
 /* go-live steps */
 .steps { list-style: none; background: #fff; border: 1px solid #e6e9ee;
    border-radius: 14px; padding: 4px 20px; box-shadow: 0 1px 2px #0f172a08; }
@@ -372,8 +378,44 @@ def _sec_site(lead: Lead, U: dict) -> str:
             f'</iframe></div>')
 
 
+_CHANGES_JS = """
+(function () {
+  var lid = %%LID%%;
+  var form = document.getElementById('wg-change'), instr = document.getElementById('wg-instr'),
+      photos = document.getElementById('wg-photos'), files = document.getElementById('wg-files'),
+      btn = document.getElementById('wg-send'), label = btn.textContent;
+  photos.addEventListener('change', function () {
+    files.textContent = photos.files.length ? (photos.files.length + ' ' + %%WORD%%) : '';
+  });
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (!instr.value.trim() && !photos.files.length) return;
+    btn.disabled = true; btn.textContent = %%SENDING%%;
+    var urls = [], chain = Promise.resolve();
+    Array.prototype.forEach.call(photos.files, function (f) {
+      chain = chain.then(function () {
+        return fetch('/c/' + lid + '/upload', { method: 'POST',
+          headers: { 'Content-Type': f.type || 'application/octet-stream' }, body: f })
+          .then(function (r) { return r.json(); })
+          .then(function (j) { if (j && j.ok && j.url) urls.push(j.url); });
+      });
+    });
+    chain.then(function () {
+      return fetch('/c/' + lid + '/edit', { method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ instruction: instr.value, images: urls }) });
+    }).then(function () { location.href = '/c/' + lid; })
+      .catch(function () { btn.disabled = false; btn.textContent = label; });
+  });
+})();
+"""
+
+
 def _sec_changes(lead: Lead, U: dict) -> str:
     lid = _esc(lead.id)
+    script = (_CHANGES_JS.replace("%%LID%%", json.dumps(lead.id))
+              .replace("%%WORD%%", json.dumps(U["changes_photos_word"]))
+              .replace("%%SENDING%%", json.dumps(U["changes_sending"])))
     return f"""<div class="change-card">
   <h3>{_esc(U['sec_changes_inline_h'])}</h3>
   <p>{_esc(U['sec_changes_inline_d'])}</p>
@@ -382,12 +424,16 @@ def _sec_changes(lead: Lead, U: dict) -> str:
 <div class="change-card">
   <h3>{_esc(U['sec_changes_ask_h'])}</h3>
   <p>{_esc(U['sec_changes_ask_d'])}</p>
-  <form method="post" action="/c/{lid}/edit">
-    <textarea name="instruction" rows="3" required
+  <form id="wg-change">
+    <textarea id="wg-instr" rows="3"
               placeholder="{_esc(U['console_edit_ph'])}"></textarea>
-    <button class="btn primary" type="submit">{_esc(U['console_edit_btn'])}</button>
+    <label class="filepick">{_esc(U['changes_photos'])}
+      <input id="wg-photos" type="file" accept="image/*" multiple></label>
+    <div id="wg-files" class="filelist"></div>
+    <button class="btn primary" id="wg-send" type="submit">{_esc(U['console_edit_btn'])}</button>
   </form>
-</div>"""
+</div>
+<script>{script}</script>"""
 
 
 def _sec_design(lead: Lead, others: list, U: dict) -> str:

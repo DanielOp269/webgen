@@ -152,7 +152,11 @@ UI = {
                                 "it — no tech needed.",
         "sec_changes_ask_h": "Need a bigger change?",
         "sec_changes_ask_d": "Tell us in your own words — colours, layout, a whole "
-                             "new section — and we'll take care of it.",
+                             "new section — and we'll take care of it. Attach "
+                             "photos and we'll add them for you.",
+        "changes_photos": "📷 Add photos (optional)",
+        "changes_photos_word": "photo(s) selected",
+        "changes_sending": "Sending…",
         "sec_design_h": "Choose a different design",
         "sec_design_sub": "Switch to another look any time. Your changes carry over.",
         "sec_details_h": "Business details",
@@ -311,7 +315,11 @@ UI = {
                                 "Sie es — ganz ohne Technik.",
         "sec_changes_ask_h": "Größere Änderung nötig?",
         "sec_changes_ask_d": "Sagen Sie es in Ihren Worten — Farben, Layout, ein "
-                             "ganz neuer Abschnitt — wir kümmern uns darum.",
+                             "ganz neuer Abschnitt — wir kümmern uns darum. Hängen "
+                             "Sie Fotos an, und wir fügen sie für Sie ein.",
+        "changes_photos": "📷 Fotos hinzufügen (optional)",
+        "changes_photos_word": "Foto(s) ausgewählt",
+        "changes_sending": "Wird gesendet…",
         "sec_design_h": "Anderes Design wählen",
         "sec_design_sub": "Wechseln Sie jederzeit den Look. Ihre Änderungen bleiben erhalten.",
         "sec_details_h": "Unternehmensdaten",

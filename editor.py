@@ -18,9 +18,12 @@ from __future__ import annotations
 
 import html
 import os
+import re
 
 from .agent import Variant
 from .brief import Brief
+
+_IMG_URL = re.compile(r"/c/[A-Za-z0-9_-]+/img/[A-Za-z0-9._-]+")
 
 
 class Editor:
@@ -63,10 +66,22 @@ class StubEditor(Editor):
         banner = (f'<div style="background:#16a34a;color:#fff;padding:10px 16px;'
                   f'font:14px/1.4 sans-serif;text-align:center">'
                   f'✎ {html.escape(instruction)}</div>')
+        # Attached photos → drop them onto the (home) page so the loop is visible.
+        imgs = _IMG_URL.findall(instruction)
+        gallery = ""
+        if imgs:
+            tiles = "".join(
+                f'<img src="{html.escape(u)}" alt="" '
+                f'style="width:220px;height:160px;object-fit:cover;border-radius:8px">'
+                for u in imgs
+            )
+            gallery = (f'<div style="display:flex;gap:12px;flex-wrap:wrap;'
+                       f'justify-content:center;padding:24px">{tiles}</div>')
         revised: dict[str, str] = {}
         for fname, doc in variant.files.items():
-            if "<body>" in doc and banner not in doc:
-                doc = doc.replace("<body>", "<body>\n" + banner, 1)
+            add = banner + (gallery if fname == "index.html" else "")
+            if "<body>" in doc:
+                doc = doc.replace("<body>", "<body>\n" + add, 1)
             revised[fname] = note + "\n" + doc
         return revised
 

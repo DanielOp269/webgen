@@ -238,13 +238,18 @@ class Handler(BaseHTTPRequestHandler):
         self._redirect(f"/c/{lead_id}")
 
     def _console_edit(self, path: str):
-        """POST /c/<lead_id>/edit {instruction} — queue a plain-language change."""
+        """POST /c/<lead_id>/edit {instruction, images[]} — queue a change."""
         lead_id = path.strip("/").split("/")[1]
         length = int(self.headers.get("Content-Length", 0))
-        form = parse_qs(self.rfile.read(length).decode("utf-8", "replace"))
-        instruction = (form.get("instruction") or [""])[0]
-        JOBS.request_edit(lead_id, instruction)  # None (empty/no choice) → just redirect
-        self._redirect(f"/c/{lead_id}")
+        raw = self.rfile.read(length) if length > 0 else b"{}"
+        try:
+            payload = json.loads(raw or b"{}")
+            instruction, images = payload.get("instruction", ""), payload.get("images", [])
+        except Exception:                       # tolerate a plain form post too
+            form = parse_qs(raw.decode("utf-8", "replace"))
+            instruction, images = (form.get("instruction") or [""])[0], []
+        job = JOBS.request_edit(lead_id, instruction, images)
+        self._json(200 if job else 400, {"ok": bool(job)})
 
     def _console_save_site(self, path: str):
         """POST /c/<lead_id>/save-site {file, html} — the inline editor saving."""

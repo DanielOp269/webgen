@@ -49,6 +49,7 @@ class Job:
         # asynchronously by the worker to the chosen variant.
         self.edit_status = ""           # "" | pending | applying | done | error
         self.edit_instruction = ""      # the current pending request
+        self.edit_images: list[str] = []  # image URLs the customer attached to it
         self.edits: list[str] = []      # history of applied instructions
         self.brief = brief
         self.generator = generator
@@ -142,6 +143,16 @@ class Job:
         return [pk for pk in self.brief.pages
                 if ("index.html" if pk == "home" else pk + ".html") in files]
 
+    def _compose_edit(self) -> str:
+        """The full instruction sent to the editor, folding in attached photos."""
+        instr = self.edit_instruction
+        if self.edit_images:
+            urls = ", ".join(self.edit_images)
+            instr += ("\n\nThe customer attached photo(s) to use on the site. Use "
+                      "these exact URLs as <img> sources (in this order), placed "
+                      "sensibly for the request above: " + urls)
+        return instr.strip()
+
     def apply_edit(self, editor) -> None:
         """Apply the pending edit to the chosen variant via an Editor engine."""
         v = self.variant(self.chosen or "")
@@ -149,7 +160,7 @@ class Job:
             self.edit_status = "error"
             self.error = "no chosen variant to edit"
             return
-        instruction = self.edit_instruction
+        instruction = self._compose_edit()
         self.edit_status = "applying"
         try:
             new_files = editor.edit(self.brief, v, instruction)
@@ -158,8 +169,9 @@ class Job:
             with self._lock:
                 v.files = new_files
                 v.pages = self._pages_for(new_files) or v.pages
-                self.edits.append(instruction)
+                self.edits.append(self.edit_instruction)
                 self.edit_instruction = ""
+                self.edit_images = []
                 self.edit_status = "done"
         except Exception as exc:                # noqa: BLE001 — surface to UI
             self.edit_status = "error"
@@ -212,6 +224,7 @@ class Job:
                 "chosen": self.chosen,
                 "edit_status": self.edit_status,
                 "edit_instruction": self.edit_instruction,
+                "edit_images": list(self.edit_images),
                 "edits": list(self.edits),
                 "status": self.status,
                 "error": self.error,
@@ -231,6 +244,7 @@ class Job:
         job.chosen = data.get("chosen")
         job.edit_status = data.get("edit_status", "")
         job.edit_instruction = data.get("edit_instruction", "")
+        job.edit_images = list(data.get("edit_images", []))
         job.edits = list(data.get("edits", []))
         job.brief = Brief(**data["brief"])
         job.generator = None
@@ -367,16 +381,21 @@ class JobStore:
         self._save(job)
         return job
 
-    def request_edit(self, lead_id: str, instruction: str) -> Job | None:
-        """Queue a plain-language edit for a lead's chosen site. Persist it so
-        the (separate) worker process picks it up. Returns None if there's no
-        finished, chosen job or the instruction is empty."""
+    def request_edit(self, lead_id: str, instruction: str,
+                     images: list[str] | None = None) -> Job | None:
+        """Queue a plain-language edit (optionally with attached photo URLs) for a
+        lead's chosen site. Persist it so the (separate) worker picks it up.
+        Returns None if there's no finished, chosen job or nothing was requested."""
         instruction = (instruction or "").strip()
+        images = [u for u in (images or []) if u]
         job = self.for_lead(lead_id)
-        if not job or job.status != "done" or not job.chosen or not instruction:
+        if not job or job.status != "done" or not job.chosen:
+            return None
+        if not instruction and not images:
             return None
         with job._lock:
             job.edit_instruction = instruction
+            job.edit_images = images
             job.edit_status = "pending"
         self._save(job)
         return job
