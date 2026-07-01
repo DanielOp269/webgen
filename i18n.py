@@ -13,7 +13,7 @@ This module imports nothing from the package, so others can import it freely.
 from __future__ import annotations
 
 LANGS = ["en", "de"]
-DEFAULT_LANG = "en"
+DEFAULT_LANG = "de"            # German-first: our target audience. English stays available.
 
 LANG_NAMES = {"en": "English", "de": "Deutsch"}
 
@@ -131,6 +131,71 @@ UI = {
                               "mind? Just pick another below and it switches "
                               "instantly.",
         "console_visit": "Visit your website →",
+        "console_live_note": "Your website is live",
+        "console_design": "Design: {title}",
+        "console_live_hint": "It's online now. We'll be in touch about your own "
+                             "web address (like yourbusiness.com).",
+        "console_others_h": "Prefer a different look? You can switch any time.",
+        # console shell (left-nav dashboard)
+        "nav_site": "My website",
+        "nav_changes": "Make changes",
+        "nav_design": "Design",
+        "nav_details": "Business details",
+        "nav_golive": "Getting live",
+        "nav_section": "Website console",
+        "console_preview_label": "your website — live preview",
+        "view_desktop": "Desktop",
+        "view_mobile": "Phone",
+        "sec_site_h": "Your website",
+        "sec_site_sub": "This is your live website. Edit it yourself, or view it "
+                        "as your visitors see it.",
+        "sec_changes_h": "Make changes",
+        "sec_changes_inline_h": "Edit it yourself",
+        "sec_changes_inline_d": "Click any text or photo on your site and change "
+                                "it — no tech needed.",
+        "sec_changes_ask_h": "Need a bigger change?",
+        "sec_changes_ask_d": "Tell us in your own words — colours, layout, a whole "
+                             "new section — and we'll take care of it. Attach "
+                             "photos and we'll add them for you.",
+        "changes_photos": "📷 Add photos (optional)",
+        "changes_photos_word": "photo(s) selected",
+        "changes_sending": "Sending…",
+        "sec_design_h": "Choose a different design",
+        "sec_design_sub": "Switch to another look any time. Your changes carry over.",
+        "sec_details_h": "Business details",
+        "sec_details_soon": "Coming soon — update your opening hours, phone number "
+                            "and address here, and we'll keep your website in sync.",
+        "sec_golive_h": "Getting your website live",
+        "sec_golive_sub": "Here's where things stand. We handle the technical parts.",
+        "step_design_t": "Design chosen",
+        "step_design_d": "You picked the look for your website.",
+        "step_personalise_t": "Make it yours",
+        "step_personalise_d": "Edit your text and add your own photos.",
+        "step_address_t": "Your own web address",
+        "step_address_d": "We'll set up a custom address like yourbusiness.com.",
+        "step_live_t": "Fully live",
+        "step_live_d": "We publish it for the world to see.",
+        "step_now": "In progress",
+        "step_done": "Done",
+        "step_next": "Coming up",
+        "console_edit_label": "Want a change? Just tell us — no tech needed.",
+        "console_edit_ph": "e.g. change our opening hours, use warmer colours, "
+                           "add our phone number to the top",
+        "console_edit_btn": "Send change →",
+        "console_editing_h": "We're making your change",
+        "console_editing_sub": "Hang tight — we're updating your website now. "
+                               "This page updates automatically, so you can leave "
+                               "and come back.",
+        # inline site editor (edit-what-you-see)
+        "console_edit_open": "✏️ Edit my website",
+        "console_edit_hint": "Editing your website — click any text or photo to "
+                             "change it, then Save",
+        "console_uploading": "Uploading your photo…",
+        "console_photo_done": "Photo added ✓  — don't forget to Save",
+        "console_edit_save": "Save changes",
+        "console_edit_exit": "Done",
+        "console_edit_saved": "Saved ✓  Your website is updated",
+        "console_edit_savefail": "Sorry — we couldn't save. Please try again.",
         "console_pending_h": "We're preparing your options",
         "console_pending_sub": "Our team is designing your website now. This page "
                                "will update automatically — you can safely leave "
@@ -232,6 +297,72 @@ UI = {
                               "Wählen Sie einfach unten eine andere — sie wird "
                               "sofort umgestellt.",
         "console_visit": "Website ansehen →",
+        "console_live_note": "Ihre Website ist live",
+        "console_design": "Design: {title}",
+        "console_live_hint": "Sie ist jetzt online. Wegen Ihrer eigenen Web-Adresse "
+                             "(z. B. ihrunternehmen.de) melden wir uns.",
+        "console_others_h": "Lieber ein anderer Look? Sie können jederzeit wechseln.",
+        # Konsole (Dashboard mit Seitenmenü)
+        "nav_site": "Meine Website",
+        "nav_changes": "Änderungen",
+        "nav_design": "Design",
+        "nav_details": "Unternehmensdaten",
+        "nav_golive": "Live gehen",
+        "nav_section": "Website-Konsole",
+        "console_preview_label": "Ihre Website — Live-Vorschau",
+        "view_desktop": "Desktop",
+        "view_mobile": "Handy",
+        "sec_site_h": "Ihre Website",
+        "sec_site_sub": "Das ist Ihre Live-Website. Bearbeiten Sie sie selbst oder "
+                        "sehen Sie sie so, wie Ihre Besucher sie sehen.",
+        "sec_changes_h": "Änderungen",
+        "sec_changes_inline_h": "Selbst bearbeiten",
+        "sec_changes_inline_d": "Klicken Sie auf einen Text oder ein Foto und ändern "
+                                "Sie es — ganz ohne Technik.",
+        "sec_changes_ask_h": "Größere Änderung nötig?",
+        "sec_changes_ask_d": "Sagen Sie es in Ihren Worten — Farben, Layout, ein "
+                             "ganz neuer Abschnitt — wir kümmern uns darum. Hängen "
+                             "Sie Fotos an, und wir fügen sie für Sie ein.",
+        "changes_photos": "📷 Fotos hinzufügen (optional)",
+        "changes_photos_word": "Foto(s) ausgewählt",
+        "changes_sending": "Wird gesendet…",
+        "sec_design_h": "Anderes Design wählen",
+        "sec_design_sub": "Wechseln Sie jederzeit den Look. Ihre Änderungen bleiben erhalten.",
+        "sec_details_h": "Unternehmensdaten",
+        "sec_details_soon": "Bald verfügbar — hier hinterlegen Sie Öffnungszeiten, "
+                            "Telefon und Adresse, und wir halten Ihre Website aktuell.",
+        "sec_golive_h": "Ihre Website live schalten",
+        "sec_golive_sub": "So ist der Stand. Das Technische übernehmen wir.",
+        "step_design_t": "Design gewählt",
+        "step_design_d": "Sie haben den Look für Ihre Website ausgewählt.",
+        "step_personalise_t": "Machen Sie sie zu Ihrer",
+        "step_personalise_d": "Bearbeiten Sie Texte und fügen Sie eigene Fotos hinzu.",
+        "step_address_t": "Ihre eigene Web-Adresse",
+        "step_address_d": "Wir richten eine eigene Adresse wie ihrunternehmen.de ein.",
+        "step_live_t": "Vollständig live",
+        "step_live_d": "Wir veröffentlichen sie für alle sichtbar.",
+        "step_now": "Läuft",
+        "step_done": "Erledigt",
+        "step_next": "Als Nächstes",
+        "console_edit_label": "Eine Änderung gewünscht? Sagen Sie einfach Bescheid "
+                              "— ganz ohne Technik.",
+        "console_edit_ph": "z. B. Öffnungszeiten ändern, wärmere Farben, unsere "
+                           "Telefonnummer oben ergänzen",
+        "console_edit_btn": "Änderung senden →",
+        "console_editing_h": "Wir setzen Ihre Änderung um",
+        "console_editing_sub": "Einen Moment — wir aktualisieren gerade Ihre "
+                               "Website. Diese Seite aktualisiert sich automatisch, "
+                               "Sie können sie also verlassen und später zurückkehren.",
+        # Inline-Editor (bearbeiten, was Sie sehen)
+        "console_edit_open": "✏️ Website bearbeiten",
+        "console_edit_hint": "Sie bearbeiten Ihre Website — klicken Sie auf einen "
+                             "Text oder ein Foto, um ihn zu ändern, dann Speichern",
+        "console_uploading": "Ihr Foto wird hochgeladen…",
+        "console_photo_done": "Foto hinzugefügt ✓  — nicht vergessen zu speichern",
+        "console_edit_save": "Änderungen speichern",
+        "console_edit_exit": "Fertig",
+        "console_edit_saved": "Gespeichert ✓  Ihre Website ist aktualisiert",
+        "console_edit_savefail": "Leider konnten wir nicht speichern. Bitte erneut versuchen.",
         "console_pending_h": "Wir bereiten Ihre Optionen vor",
         "console_pending_sub": "Unser Team gestaltet gerade Ihre Website. Diese "
                                "Seite aktualisiert sich automatisch — Sie können "

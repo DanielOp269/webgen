@@ -187,6 +187,17 @@ Return the COMPLETE revised single HTML file again as ONLY a ```html code block,
 no prose, no Artifacts.
 """
 
+# One customer-requested edit, sent as a follow-up turn in the SAME conversation
+# (so Claude keeps the full design context and only changes what's asked).
+EDIT_PROMPT = """\
+The client would like this change to the website:
+
+{instruction}
+
+Apply exactly that change and keep everything else the same. Return the COMPLETE \
+updated single HTML file as ONLY a ```html code block — no prose, no Artifacts.
+"""
+
 
 def site_prompt(name: str, industry: str, *, tone: str = "warm and confident",
                 language: str = "English", aesthetic: str = DEFAULT_AESTHETIC) -> str:
@@ -267,7 +278,11 @@ def _send_and_wait(page, message: str, *, timeout_ms: int = 240_000) -> None:
 
 def generate_html(prompt: str, *, refine: str | None = None,
                   headless: bool = False, timeout_ms: int = 240_000):
-    """Drive claude.ai: send `prompt` (then optional `refine` turn), return the HTML."""
+    """Drive claude.ai: send `prompt` (then optional `refine` turn).
+
+    Returns (html, chat_url): the extracted HTML and the conversation's URL, so
+    later edits can reopen the same chat. Returns (None, "") on failure.
+    """
     from playwright.sync_api import sync_playwright
 
     with _BROWSER_LOCK, sync_playwright() as p:
@@ -277,9 +292,11 @@ def generate_html(prompt: str, *, refine: str | None = None,
             page.goto(NEW_CHAT_URL, wait_until="domcontentloaded")
             if "/login" in page.url:
                 print("❌ Not logged in — run:  python browser.py login")
-                return None
+                return None, ""
 
             _send_and_wait(page, prompt, timeout_ms=timeout_ms)
+            # After the first turn claude.ai navigates to /chat/<id> — capture it.
+            chat_url = page.url
             if refine:
                 print("→ sending refinement pass…")
                 _send_and_wait(page, refine, timeout_ms=timeout_ms)
@@ -288,8 +305,43 @@ def generate_html(prompt: str, *, refine: str | None = None,
             if not html:
                 print("⚠️  Couldn't find the HTML in the reply.")
                 _save_diagnostics(page, "gen-fail")
+                return None, chat_url
+            print(f"✅ extracted {len(html):,} chars of HTML  (chat: {chat_url})")
+            return html, chat_url
+        finally:
+            ctx.close()
+
+
+def send_edit(chat_url: str, instruction: str, *, headless: bool = False,
+              timeout_ms: int = 240_000):
+    """Reopen an existing claude.ai conversation and apply one edit turn.
+
+    Sends `instruction` as a follow-up in the same chat and scrapes the revised
+    HTML from the reply. Returns the HTML, or None on failure.
+    """
+    from playwright.sync_api import sync_playwright
+
+    if not chat_url:
+        print("❌ no chat_url — nothing to reopen")
+        return None
+
+    with _BROWSER_LOCK, sync_playwright() as p:
+        ctx = launch(p, headless=headless)
+        page = ctx.pages[0] if ctx.pages else ctx.new_page()
+        try:
+            page.goto(chat_url, wait_until="domcontentloaded")
+            if "/login" in page.url:
+                print("❌ Not logged in — run:  python browser.py login")
                 return None
-            print(f"✅ extracted {len(html):,} chars of HTML")
+
+            _send_and_wait(page, EDIT_PROMPT.format(instruction=instruction),
+                           timeout_ms=timeout_ms)
+            html = _extract_html(page)
+            if not html:
+                print("⚠️  Couldn't find the revised HTML in the reply.")
+                _save_diagnostics(page, "edit-fail")
+                return None
+            print(f"✅ edited → {len(html):,} chars of HTML")
             return html
         finally:
             ctx.close()
@@ -297,7 +349,7 @@ def generate_html(prompt: str, *, refine: str | None = None,
 
 def gen() -> None:
     """Run one sample generation and save it to out.html (for hands-on testing)."""
-    html = generate_html(SAMPLE_PROMPT, headless=False)
+    html, _ = generate_html(SAMPLE_PROMPT, headless=False)
     if html:
         out = os.path.join(os.path.dirname(os.path.abspath(__file__)), "out.html")
         with open(out, "w", encoding="utf-8") as fh:
@@ -307,7 +359,7 @@ def gen() -> None:
 
 def gen2() -> None:
     """Anti-template experiment: strongly-directed prompt + a refinement pass."""
-    html = generate_html(ANTI_TEMPLATE_SAMPLE, refine=REFINE_PROMPT, headless=False)
+    html, _ = generate_html(ANTI_TEMPLATE_SAMPLE, refine=REFINE_PROMPT, headless=False)
     if html:
         out = os.path.join(os.path.dirname(os.path.abspath(__file__)), "out2.html")
         with open(out, "w", encoding="utf-8") as fh:

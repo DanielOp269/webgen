@@ -18,14 +18,17 @@ import zipfile
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlsplit
 
-from . import console, i18n
+from . import console, devseed, i18n, siteedit, uploads
 from .agent import JobStore
 from .brief import Brief, QUESTIONS
+from .generator import default_generator
 from .leads import Contact, LeadStore
 
 _STATIC = os.path.join(os.path.dirname(__file__), "static")
 STORE = LeadStore()
 JOBS = JobStore()               # finished jobs written by the worker (read fresh per request)
+# Dev-only: one-click demo seeding (never on in production).
+DEV = os.environ.get("WEBGEN_DEV", "").lower() in ("1", "true", "yes")
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -78,6 +81,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._console(path)
         if path == "/site" or path.startswith("/site/"):
             return self._live_site(path)
+        if DEV and path == "/dev":
+            return self._html(200, devseed.render_page(default_generator().name))
         self._json(404, {"error": "not found"})
 
     # -- the customer's live website ----------------------------------------
@@ -131,7 +136,30 @@ class Handler(BaseHTTPRequestHandler):
         # /c/<lead_id>  → the console page (states: pending / ready / error)
         if len(parts) == 2:
             code = 200 if lead else 404
-            return self._html(code, console.render_page(lead, job, lang))
+            # A single generated design needs no "choose" step — land the customer
+            # straight in the console dashboard.
+            if (job and job.status == "done" and not job.chosen
+                    and len(job.variants) == 1):
+                job = JOBS.set_choice(lead_id, job.variants[0].key) or job
+            view = (parse_qs(urlsplit(self.path).query).get("view") or ["site"])[0]
+            return self._html(code, console.render_page(lead, job, lang, view))
+
+        # /c/<lead_id>/editor  → the chosen site with the inline editing layer
+        if len(parts) >= 3 and parts[2] == "editor":
+            v = job.variant(job.chosen) if job and job.chosen else None
+            if v is None or "index.html" not in v.files:
+                return self._json(404, {"error": "not found"})
+            embed = parse_qs(urlsplit(self.path).query).get("embed") == ["1"]
+            return self._html(200, siteedit.render_editor(
+                v.files["index.html"], lead_id, "index.html", lang, embed))
+
+        # /c/<lead_id>/img/<name>  → a customer-uploaded image (editor + live site)
+        if len(parts) >= 4 and parts[2] == "img":
+            res = uploads.read_image(lead_id, parts[3])
+            if res is None:
+                return self._json(404, {"error": "not found"})
+            data, ctype = res
+            return self._send(200, data, ctype)
 
         # everything below needs a finished variant to serve
         variant = None
@@ -188,6 +216,14 @@ class Handler(BaseHTTPRequestHandler):
         path = urlsplit(self.path).path
         if path.startswith("/c/") and path.endswith("/choose"):
             return self._console_choose(path)
+        if path.startswith("/c/") and path.endswith("/edit"):
+            return self._console_edit(path)
+        if path.startswith("/c/") and path.endswith("/save-site"):
+            return self._console_save_site(path)
+        if path.startswith("/c/") and path.endswith("/upload"):
+            return self._console_upload(path)
+        if DEV and path == "/api/dev/seed":
+            return self._dev_seed()
         if path != "/api/submit":
             return self._json(404, {"error": "not found"})
         try:
@@ -211,10 +247,66 @@ class Handler(BaseHTTPRequestHandler):
         form = parse_qs(self.rfile.read(length).decode("utf-8", "replace"))
         variant = (form.get("variant") or [""])[0]
         JOBS.set_choice(lead_id, variant)       # None result → still redirect back
-        # POST→redirect→GET so a refresh doesn't re-submit; the console then
-        # renders the confirmed state.
+        self._redirect(f"/c/{lead_id}")
+
+    def _console_edit(self, path: str):
+        """POST /c/<lead_id>/edit {instruction, images[]} — queue a change."""
+        lead_id = path.strip("/").split("/")[1]
+        length = int(self.headers.get("Content-Length", 0))
+        raw = self.rfile.read(length) if length > 0 else b"{}"
+        try:
+            payload = json.loads(raw or b"{}")
+            instruction, images = payload.get("instruction", ""), payload.get("images", [])
+        except Exception:                       # tolerate a plain form post too
+            form = parse_qs(raw.decode("utf-8", "replace"))
+            instruction, images = (form.get("instruction") or [""])[0], []
+        job = JOBS.request_edit(lead_id, instruction, images)
+        self._json(200 if job else 400, {"ok": bool(job)})
+
+    def _console_save_site(self, path: str):
+        """POST /c/<lead_id>/save-site {file, html} — the inline editor saving."""
+        lead_id = path.strip("/").split("/")[1]
+        try:
+            length = int(self.headers.get("Content-Length", 0))
+            payload = json.loads(self.rfile.read(length) or b"{}")
+        except Exception:                       # noqa: BLE001
+            return self._json(400, {"ok": False, "error": "bad request"})
+        job = JOBS.save_site(lead_id, payload.get("file", "index.html"),
+                             payload.get("html", ""))
+        self._json(200 if job else 400, {"ok": bool(job)})
+
+    def _console_upload(self, path: str):
+        """POST /c/<lead_id>/upload — raw image bytes from the editor."""
+        lead_id = path.strip("/").split("/")[1]
+        length = int(self.headers.get("Content-Length", 0))
+        if length <= 0 or length > uploads.MAX_BYTES:
+            return self._json(413, {"ok": False})
+        data = self.rfile.read(length)
+        name = uploads.save_image(lead_id, data, self.headers.get("Content-Type", ""))
+        if not name:
+            return self._json(400, {"ok": False})
+        self._json(200, {"ok": True, "url": f"/c/{lead_id}/img/{name}"})
+
+    def _dev_seed(self):
+        """POST /api/dev/seed?kind=… — create a realistic lead + start generation."""
+        kind = (parse_qs(urlsplit(self.path).query).get("kind") or [""])[0]
+        sample = devseed.SAMPLES.get(kind)
+        if not sample:
+            return self._json(404, {"error": "unknown sample"})
+        try:
+            brief = Brief.from_answers(sample["answers"])
+            contact = Contact.from_input(sample["contact"], brief.lang)
+        except ValueError as exc:
+            return self._json(400, {"error": str(exc)})
+        lead = STORE.create(brief, contact)
+        # Generate in-process with the server's engine (browser for real sites).
+        JOBS.create(brief, default_generator(), lead_id=lead.id)
+        self._redirect(f"/c/{lead.id}")
+
+    def _redirect(self, location: str):
+        # POST→redirect→GET so a refresh doesn't re-submit.
         self.send_response(303)
-        self.send_header("Location", f"/c/{lead_id}")
+        self.send_header("Location", location)
         self.send_header("Content-Length", "0")
         self.end_headers()
 

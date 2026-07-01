@@ -17,6 +17,7 @@ same spirit as render.py.
 from __future__ import annotations
 
 import html
+import json
 
 from . import i18n
 from .agent import Job
@@ -71,15 +72,160 @@ main { padding: 24px 0 64px; }
 .btn.primary:hover { filter: brightness(1.07); }
 .btn.primary.chosen { background: #16a34a; cursor: default; }
 .btn.ghost { color: #2563eb; }
+.btn.big { display: block; width: 100%; text-align: center; padding: 15px 18px;
+   font-size: 16px; margin-bottom: 12px; }
+.btn.edit { background: #16a34a; color: #fff; border: 0; font: inherit; font-weight: 600; }
+.btn.edit:hover { filter: brightness(1.06); }
+.btn.outline { background: #fff; border: 1.5px solid #cbd5e1; color: #0f172a; }
+.btn.outline:hover { border-color: #94a3b8; }
 .actions form { margin: 0; }
-.hero.confirmed { padding-top: 40px; }
-.hero.confirmed .check { width: 46px; height: 46px; border-radius: 50%;
-   background: #16a34a; color: #fff; font-size: 26px; font-weight: 700;
-   display: flex; align-items: center; justify-content: center; margin-bottom: 14px; }
-.hero.confirmed h1 { color: #15803d; }
-.hero.confirmed .btn.live { background: #16a34a; margin-top: 18px; padding: 13px 24px;
-   font-size: 16px; }
-.hero.confirmed .btn.live:hover { filter: brightness(1.05); }
+
+/* chosen → "My Website" dashboard */
+.dash { padding: 40px 0 16px; }
+.live-note { display: flex; align-items: center; gap: 9px; color: #15803d;
+   font-weight: 700; font-size: 16px; margin-bottom: 16px; }
+.live-note .check { width: 26px; height: 26px; border-radius: 50%; background: #16a34a;
+   color: #fff; font-size: 15px; display: inline-flex; align-items: center;
+   justify-content: center; }
+.mywebsite { display: grid; grid-template-columns: 1.35fr 1fr; gap: 28px;
+   align-items: center; background: #fff; border: 1px solid #e2e8f0;
+   border-radius: 18px; padding: 22px; }
+.mywebsite .preview { position: relative; height: 340px; overflow: hidden;
+   border: 1px solid #e2e8f0; border-radius: 12px; background: #f8fafc; }
+.mywebsite .preview iframe { position: absolute; top: 0; left: 0; width: 1280px;
+   height: 1000px; border: 0; transform: scale(.53); transform-origin: top left; }
+.mywebsite .preview .cover { position: absolute; inset: 0; }
+.mywebsite .panel h1 { font-size: 26px; }
+.mywebsite .panel .design { display: flex; align-items: center; gap: 8px;
+   color: #64748b; font-size: 14px; margin: 8px 0 22px; }
+.mywebsite .panel .hint { color: #94a3b8; font-size: 13px; margin-top: 4px; }
+.others { padding: 24px 0 60px; }
+.others-h { font-size: 18px; color: #334155; margin-bottom: 16px; }
+@media (max-width: 760px) { .mywebsite { grid-template-columns: 1fr; } }
+
+/* ---- console shell (left-nav dashboard) ---- */
+body.app { background: #f7f8fa; color: #111827; }
+.console { display: grid; grid-template-columns: 264px 1fr; min-height: 100vh; }
+.side { background: #fff; border-right: 1px solid #edeff2; padding: 16px 12px;
+   display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; }
+.brand { display: flex; align-items: center; gap: 11px; padding: 8px 8px 16px; }
+.brand .logo { width: 38px; height: 38px; border-radius: 9px; flex: none;
+   background: linear-gradient(135deg, #16a34a, #157f43); color: #fff;
+   font-weight: 800; font-size: 14px; letter-spacing: .02em;
+   display: flex; align-items: center; justify-content: center; }
+.brand .bn { font-weight: 700; font-size: 14px; line-height: 1.25; color: #111827; }
+.brand .bt { font-size: 12px; color: #9aa3af; margin-top: 2px; }
+.side nav { display: flex; flex-direction: column; gap: 2px; }
+.nav-item { display: flex; align-items: center; gap: 11px; padding: 9px 11px;
+   border-radius: 8px; color: #4b5563; font-weight: 500; font-size: 14.5px;
+   text-decoration: none; }
+.nav-item svg { width: 19px; height: 19px; color: #9aa3af; flex: none; }
+.nav-item:hover { background: #f4f5f7; color: #111827; }
+.nav-item:hover svg { color: #6b7280; }
+.nav-item.active { background: #f0fdf4; color: #15803d; font-weight: 600; }
+.nav-item.active svg { color: #16a34a; }
+.side .spacer { flex: 1; }
+.side .foot { border-top: 1px solid #edeff2; padding: 12px 8px 2px;
+   color: #9aa3af; font-size: 11.5px; }
+.content { min-width: 0; }
+.chead { background: #fff; border-bottom: 1px solid #edeff2; padding: 0 32px;
+   height: 64px; display: flex; align-items: center; justify-content: space-between;
+   position: sticky; top: 0; z-index: 5; }
+.chead h1 { font-size: 18px; font-weight: 600; letter-spacing: -.01em; }
+.live-dot { display: inline-flex; align-items: center; gap: 7px; background: #f0fdf4;
+   color: #15803d; font-weight: 600; font-size: 12.5px; padding: 5px 11px;
+   border-radius: 999px; }
+.live-dot i { width: 7px; height: 7px; border-radius: 50%; background: #16a34a; }
+.cbody { padding: 30px 32px 64px; max-width: 1000px; }
+.cbody.full { padding: 0; max-width: none; }
+.editcanvas { height: calc(100vh - 64px); background: #f1f3f5; }
+.editcanvas iframe { width: 100%; height: 100%; border: 0; display: block;
+   background: #fff; }
+.editcanvas.mobile { display: flex; justify-content: center; }
+.editcanvas.mobile iframe { width: 400px; max-width: 100%;
+   box-shadow: 0 0 0 1px #e6e9ee, 0 8px 30px #0f172a1a; }
+.device-toggle { display: inline-flex; background: #f1f3f5; border-radius: 9px;
+   padding: 3px; gap: 2px; }
+.device-toggle button { border: 0; background: transparent; padding: 6px 11px;
+   border-radius: 7px; cursor: pointer; font-size: 15px; line-height: 1; }
+.device-toggle button.active { background: #fff; box-shadow: 0 1px 2px #0f172a1a; }
+.lead-sub { color: #6b7280; margin-bottom: 24px; max-width: 64ch; font-size: 15px; }
+.actions-row { display: flex; gap: 10px; align-items: center; }
+.btn.edit { background: #16a34a; color: #fff; border: 0; }
+.btn.edit:hover { background: #15803d; }
+.btn.outline { background: #fff; border: 1px solid #d7dbe0; color: #111827;
+   box-shadow: 0 1px 1px #0000000a; }
+.btn.outline:hover { background: #f9fafb; }
+/* site preview with faux browser chrome */
+.siteview { background: #fff; border: 1px solid #e6e9ee; border-radius: 14px;
+   overflow: hidden; box-shadow: 0 1px 3px #0f172a0d; }
+.browserbar { display: flex; align-items: center; gap: 10px; padding: 11px 14px;
+   border-bottom: 1px solid #edeff2; background: #fbfbfc; }
+.browserbar .dots { display: flex; gap: 6px; }
+.browserbar .dots span { width: 11px; height: 11px; border-radius: 50%; background: #e2e5ea; }
+.browserbar .addr { flex: 1; max-width: 320px; margin: 0 auto; background: #f1f3f5;
+   border-radius: 7px; padding: 6px 12px; font-size: 12.5px; color: #8a94a1;
+   text-align: center; }
+.siteview .frame { position: relative; height: 440px; background: #fff; overflow: hidden; }
+.siteview .frame iframe { position: absolute; top: 0; left: 0; width: 1180px;
+   height: 1500px; border: 0; transform: scale(.847); transform-origin: top left; }
+.siteview .bar { display: flex; gap: 10px; padding: 16px; border-top: 1px solid #edeff2;
+   flex-wrap: wrap; }
+/* changes section */
+.change-card { background: #fff; border: 1px solid #e6e9ee; border-radius: 12px;
+   padding: 22px; margin-bottom: 16px; box-shadow: 0 1px 2px #0f172a08; }
+.change-card h3 { font-size: 16px; margin-bottom: 6px; font-weight: 650; }
+.change-card p { color: #6b7280; font-size: 14px; margin-bottom: 14px; max-width: 60ch; }
+.change-card textarea { width: 100%; padding: 12px 14px; border: 1px solid #d7dbe0;
+   border-radius: 9px; font: inherit; resize: vertical; margin-bottom: 12px; }
+.change-card textarea:focus { outline: none; border-color: #16a34a;
+   box-shadow: 0 0 0 3px #16a34a1f; }
+.filepick { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 12px;
+   font-size: 14px; font-weight: 600; color: #374151; cursor: pointer; }
+.filepick input { font: inherit; font-weight: 400; }
+.filelist { font-size: 13px; color: #15803d; font-weight: 600; margin-bottom: 12px;
+   min-height: 16px; }
+/* go-live steps */
+.steps { list-style: none; background: #fff; border: 1px solid #e6e9ee;
+   border-radius: 14px; padding: 4px 20px; box-shadow: 0 1px 2px #0f172a08; }
+.step { display: flex; gap: 15px; padding: 18px 0; align-items: center;
+   border-bottom: 1px solid #f1f3f5; }
+.step:last-child { border-bottom: 0; }
+.step .marker { flex: none; width: 32px; height: 32px; border-radius: 50%;
+   display: flex; align-items: center; justify-content: center; font-weight: 700;
+   font-size: 14px; }
+.step.done .marker { background: #16a34a; color: #fff; }
+.step.now .marker { background: #111827; color: #fff; }
+.step.next .marker { background: #eef1f4; color: #9aa3af; }
+.step .line { flex: 1; }
+.step .line h3 { font-size: 15.5px; font-weight: 600; }
+.step .line p { color: #6b7280; font-size: 13.5px; }
+.step .tag { flex: none; font-size: 11.5px; font-weight: 600; padding: 5px 11px;
+   border-radius: 999px; }
+.step.done .tag { background: #f0fdf4; color: #15803d; }
+.step.now .tag { background: #eef2f6; color: #334155; }
+.step.next .tag { background: #f4f5f7; color: #9aa3af; }
+.soon { background: #fff; border: 1px dashed #d7dbe0; border-radius: 12px;
+   padding: 44px 32px; color: #6b7280; text-align: center; max-width: 56ch;
+   box-shadow: 0 1px 2px #0f172a06; }
+/* Narrow screens: sidebar becomes a top bar with a horizontal nav. */
+@media (max-width: 860px) {
+  .console { grid-template-columns: 1fr; }
+  .side { position: static; height: auto; border-right: 0;
+     border-bottom: 1px solid #edeff2; padding: 12px 14px; }
+  .side .spacer, .side .foot { display: none; }
+  .side nav { flex-direction: row; overflow-x: auto; gap: 4px; margin-top: 12px;
+     -webkit-overflow-scrolling: touch; }
+  .nav-item { white-space: nowrap; padding: 9px 13px; }
+  .chead { height: auto; padding: 12px 18px; flex-wrap: wrap; gap: 10px; }
+  .chead h1 { flex: 1 0 100%; }
+  .cbody { padding: 22px 18px 48px; }
+  .cbody.full .editcanvas { height: 72vh; }
+}
+@media (max-width: 420px) {
+  .nav-item span { display: none; }        /* icon-only nav on phones */
+  .nav-item { padding: 10px; }
+}
 .state { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px;
          padding: 48px 40px; text-align: center; margin-top: 32px; }
 .state h1 { font-size: 26px; margin-bottom: 10px; }
@@ -159,7 +305,212 @@ def _variant_card(lead: Lead, v_key: str, title: str, blurb: str, accent: str,
 </div>"""
 
 
-def render_page(lead: Lead | None, job: Job | None, lang: str) -> str:
+# --------------------------------------------------------------------------
+# The console shell (left-nav dashboard) shown once a design is chosen
+# --------------------------------------------------------------------------
+
+# Clean line icons (Lucide), stroked with currentColor.
+def _svg(paths: str) -> str:
+    return (f'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+            f'stroke-width="2" stroke-linecap="round" stroke-linejoin="round">{paths}</svg>')
+
+
+_ICONS = {
+    "site": _svg('<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>'
+                 '<path d="M9 22V12h6v10"/>'),
+    "changes": _svg('<path d="M12 20h9"/>'
+                    '<path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>'),
+    "design": _svg('<rect width="18" height="18" x="3" y="3" rx="2"/>'
+                   '<path d="M3 9h18"/><path d="M9 21V9"/>'),
+    "details": _svg('<rect width="8" height="4" x="8" y="2" rx="1"/>'
+                    '<path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>'
+                    '<path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/>'),
+    "golive": _svg('<path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/>'
+                   '<path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/>'
+                   '<path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/>'
+                   '<path d="M15 12v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/>'),
+}
+_NAV = [("site", "nav_site"), ("changes", "nav_changes"), ("design", "nav_design"),
+        ("details", "nav_details"), ("golive", "nav_golive")]
+_VIEWS = {k for k, _ in _NAV}
+
+
+def _initials(name: str) -> str:
+    parts = [p for p in name.split() if p]
+    if not parts:
+        return "•"
+    if len(parts) == 1:
+        return parts[0][:2].upper()
+    return (parts[0][0] + parts[1][0]).upper()
+
+
+def _sidebar(lead: Lead, active: str, U: dict) -> str:
+    lid = _esc(lead.id)
+    items = "".join(
+        f'<a class="nav-item{" active" if k == active else ""}" '
+        f'href="/c/{lid}?view={k}">{_ICONS[k]}<span>{_esc(U[label])}</span></a>'
+        for k, label in _NAV
+    )
+    return f"""<aside class="side">
+  <div class="brand">
+    <div class="logo">{_esc(_initials(lead.brief.name))}</div>
+    <div class="who"><div class="bn">{_esc(lead.brief.name)}</div>
+      <div class="bt">{_esc(U['nav_section'])}</div></div>
+  </div>
+  <nav>{items}</nav>
+  <div class="spacer"></div>
+  <div class="foot">{_esc(U['app_footer'])}</div>
+</aside>"""
+
+
+def _console_doc(lang: str, U: dict, body: str) -> str:
+    return f"""<!doctype html>
+<html lang="{_esc(lang)}"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>{_esc(U['console_title'])}</title>
+<style>{_css()}</style>
+</head><body class="app">{body}</body></html>"""
+
+
+def _console_shell(lead: Lead, active: str, title: str, content: str, lang: str,
+                   full: bool = False, head_extra: str = "") -> str:
+    U = i18n.ui(lang)
+    lid = _esc(lead.id)
+    head = f"""<header class="chead">
+  <h1>{_esc(title)}</h1>
+  <div class="actions-row">
+    {head_extra}
+    <span class="live-dot"><i></i>{_esc(U['console_live_note'])}</span>
+    <a class="btn outline" href="/site/{lid}/" target="_blank"
+       rel="noopener">{_esc(U['console_visit'])}</a>
+  </div>
+</header>"""
+    cbody = f'<div class="cbody{" full" if full else ""}">{content}</div>'
+    body = (f'<div class="console">{_sidebar(lead, active, U)}'
+            f'<main class="content">{head}{cbody}</main></div>')
+    return _console_doc(lang, U, body)
+
+
+def _device_toggle(U: dict) -> str:
+    return (f'<div class="device-toggle" role="group">'
+            f'<button type="button" data-d="desktop" class="active" '
+            f'title="{_esc(U["view_desktop"])}">🖥</button>'
+            f'<button type="button" data-d="mobile" '
+            f'title="{_esc(U["view_mobile"])}">📱</button></div>')
+
+
+def _sec_site(lead: Lead, U: dict) -> str:
+    # The live site, editable in place — click any text to change it, no extra step.
+    # The device toggle (in the header) flips the canvas between desktop/phone width.
+    lid = _esc(lead.id)
+    return (f'<div class="editcanvas" id="wg-canvas">'
+            f'<iframe src="/c/{lid}/editor?embed=1" title="{_esc(lead.brief.name)}">'
+            f'</iframe></div>'
+            f'<script>(function(){{'
+            f'var b=document.querySelectorAll(".device-toggle button"),'
+            f'c=document.getElementById("wg-canvas");'
+            f'b.forEach(function(x){{x.addEventListener("click",function(){{'
+            f'b.forEach(function(y){{y.classList.remove("active");}});'
+            f'x.classList.add("active");'
+            f'c.classList.toggle("mobile",x.dataset.d==="mobile");}});}});}})();</script>')
+
+
+_CHANGES_JS = """
+(function () {
+  var lid = %%LID%%;
+  var form = document.getElementById('wg-change'), instr = document.getElementById('wg-instr'),
+      photos = document.getElementById('wg-photos'), files = document.getElementById('wg-files'),
+      btn = document.getElementById('wg-send'), label = btn.textContent;
+  photos.addEventListener('change', function () {
+    files.textContent = photos.files.length ? (photos.files.length + ' ' + %%WORD%%) : '';
+  });
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (!instr.value.trim() && !photos.files.length) return;
+    btn.disabled = true; btn.textContent = %%SENDING%%;
+    var urls = [], chain = Promise.resolve();
+    Array.prototype.forEach.call(photos.files, function (f) {
+      chain = chain.then(function () {
+        return fetch('/c/' + lid + '/upload', { method: 'POST',
+          headers: { 'Content-Type': f.type || 'application/octet-stream' }, body: f })
+          .then(function (r) { return r.json(); })
+          .then(function (j) { if (j && j.ok && j.url) urls.push(j.url); });
+      });
+    });
+    chain.then(function () {
+      return fetch('/c/' + lid + '/edit', { method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ instruction: instr.value, images: urls }) });
+    }).then(function () { location.href = '/c/' + lid; })
+      .catch(function () { btn.disabled = false; btn.textContent = label; });
+  });
+})();
+"""
+
+
+def _sec_changes(lead: Lead, U: dict) -> str:
+    lid = _esc(lead.id)
+    script = (_CHANGES_JS.replace("%%LID%%", json.dumps(lead.id))
+              .replace("%%WORD%%", json.dumps(U["changes_photos_word"]))
+              .replace("%%SENDING%%", json.dumps(U["changes_sending"])))
+    return f"""<div class="change-card">
+  <h3>{_esc(U['sec_changes_inline_h'])}</h3>
+  <p>{_esc(U['sec_changes_inline_d'])}</p>
+  <a class="btn edit" href="/c/{lid}/editor">{_esc(U['console_edit_open'])}</a>
+</div>
+<div class="change-card">
+  <h3>{_esc(U['sec_changes_ask_h'])}</h3>
+  <p>{_esc(U['sec_changes_ask_d'])}</p>
+  <form id="wg-change">
+    <textarea id="wg-instr" rows="3"
+              placeholder="{_esc(U['console_edit_ph'])}"></textarea>
+    <label class="filepick">{_esc(U['changes_photos'])}
+      <input id="wg-photos" type="file" accept="image/*" multiple></label>
+    <div id="wg-files" class="filelist"></div>
+    <button class="btn primary" id="wg-send" type="submit">{_esc(U['console_edit_btn'])}</button>
+  </form>
+</div>
+<script>{script}</script>"""
+
+
+def _sec_design(lead: Lead, others: list, U: dict) -> str:
+    sub = f'<p class="lead-sub">{_esc(U["sec_design_sub"])}</p>'
+    if not others:
+        return sub
+    cards = "".join(
+        _variant_card(lead, v.key, v.title, v.blurb, v.accent, False, U)
+        for v in others
+    )
+    return sub + f'<div class="grid">{cards}</div>'
+
+
+def _sec_details(U: dict) -> str:
+    return f'<div class="soon">{_esc(U["sec_details_soon"])}</div>'
+
+
+def _sec_golive(U: dict) -> str:
+    # Static for now: design done, personalising in progress, address + live upcoming.
+    rows = [
+        ("done", "✓", "step_design_t", "step_design_d", "step_done"),
+        ("now", "2", "step_personalise_t", "step_personalise_d", "step_now"),
+        ("next", "3", "step_address_t", "step_address_d", "step_next"),
+        ("next", "4", "step_live_t", "step_live_d", "step_next"),
+    ]
+    lis = "".join(
+        f"""<li class="step {state}">
+    <span class="marker">{mark}</span>
+    <div class="line"><h3>{_esc(U[tk])}</h3><p>{_esc(U[dk])}</p></div>
+    <span class="tag">{_esc(U[tagk])}</span>
+  </li>"""
+        for state, mark, tk, dk, tagk in rows
+    )
+    return f'<p class="lead-sub">{_esc(U["sec_golive_sub"])}</p><ul class="steps">{lis}</ul>'
+
+
+def render_page(lead: Lead | None, job: Job | None, lang: str,
+                view: str = "site") -> str:
     """Full console HTML for a lead's current generation state."""
     U = i18n.ui(lang)
 
@@ -179,31 +530,41 @@ def render_page(lead: Lead | None, job: Job | None, lang: str) -> str:
         return _state_page(lang, brand, sub, U["console_error_h"],
                            U["console_error_sub"], spinner=False, refresh=False)
 
+    # A customer-requested change is being applied → reassure + poll for the result.
+    if job.edit_status in ("pending", "applying"):
+        return _state_page(lang, brand, sub, U["console_editing_h"],
+                           U["console_editing_sub"], spinner=True, refresh=True)
+
     chosen = job.chosen
+    cv = job.variant(chosen) if chosen else None
+
+    # Chosen + live → the full console (left-nav dashboard).
+    if cv is not None:
+        active = view if view in _VIEWS else "site"
+        others = [v for v in job.variants if v.key != chosen]
+        full = False
+        if active == "changes":
+            title, content = U["sec_changes_h"], _sec_changes(lead, U)
+        elif active == "design":
+            title, content = U["sec_design_h"], _sec_design(lead, others, U)
+        elif active == "details":
+            title, content = U["sec_details_h"], _sec_details(U)
+        elif active == "golive":
+            title, content = U["sec_golive_h"], _sec_golive(U)
+        else:
+            title, content, full = U["sec_site_h"], _sec_site(lead, U), True
+        extra = _device_toggle(U) if active == "site" else ""
+        return _console_shell(lead, active, title, content, lang, full=full,
+                              head_extra=extra)
+
+    # Not chosen yet → the options grid to pick from.
     cards = "".join(
-        _variant_card(lead, v.key, v.title, v.blurb, v.accent,
-                      chosen == v.key, U)
+        _variant_card(lead, v.key, v.title, v.blurb, v.accent, False, U)
         for v in job.variants
     )
-
-    if chosen and job.variant(chosen):
-        # Confirmation banner leads; the grid stays below so they can switch.
-        title = job.variant(chosen).title
-        heading = U["console_chosen_h"]
-        sub_msg = U["console_chosen_sub"].format(title=title)
-        hero = f"""<section class="hero confirmed"><div class="wrap">
-  <div class="check">✓</div>
-  <h1>{_esc(heading)}</h1>
-  <p>{_esc(sub_msg)}</p>
-  <a class="btn primary live" href="/site/{_esc(lead.id)}/" target="_blank"
-     rel="noopener">{_esc(U['console_visit'])}</a>
-</div></section>"""
-    else:
-        hero = f"""<section class="hero"><div class="wrap">
+    body = f"""<section class="hero"><div class="wrap">
   <h1>{_esc(U['console_ready_h'])}</h1>
   <p>{_esc(U['console_ready_sub'])}</p>
-</div></section>"""
-
-    body = f"""{hero}
+</div></section>
 <main><div class="wrap"><div class="grid">{cards}</div></div></main>"""
     return _shell(lang, brand, sub, body, refresh=False)
