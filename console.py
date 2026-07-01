@@ -101,6 +101,77 @@ main { padding: 24px 0 64px; }
 .others { padding: 24px 0 60px; }
 .others-h { font-size: 18px; color: #334155; margin-bottom: 16px; }
 @media (max-width: 760px) { .mywebsite { grid-template-columns: 1fr; } }
+
+/* ---- console shell (left-nav dashboard) ---- */
+body.app { background: #f1f5f9; }
+.console { display: grid; grid-template-columns: 248px 1fr; min-height: 100vh; }
+.side { background: #fff; border-right: 1px solid #e2e8f0; padding: 18px 14px;
+   display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; }
+.side .brand { font-weight: 800; font-size: 17px; padding: 6px 10px 2px; color: #0f172a; }
+.side .brand small { display: block; font-weight: 500; font-size: 12px;
+   color: #64748b; margin-top: 3px; }
+.side nav { display: flex; flex-direction: column; gap: 3px; margin-top: 16px; }
+.nav-item { display: flex; align-items: center; gap: 11px; padding: 10px 12px;
+   border-radius: 10px; color: #334155; font-weight: 600; font-size: 15px;
+   text-decoration: none; }
+.nav-item:hover { background: #f1f5f9; }
+.nav-item.active { background: #16a34a14; color: #15803d; }
+.nav-item .ic { width: 20px; text-align: center; font-size: 16px; }
+.side .spacer { flex: 1; }
+.side .foot { border-top: 1px solid #e2e8f0; padding: 12px 10px 2px;
+   color: #94a3b8; font-size: 12px; }
+.content { min-width: 0; }
+.chead { background: #fff; border-bottom: 1px solid #e2e8f0; padding: 15px 32px;
+   display: flex; align-items: center; justify-content: space-between;
+   position: sticky; top: 0; z-index: 5; }
+.chead h1 { font-size: 20px; }
+.live-dot { display: inline-flex; align-items: center; gap: 7px; color: #15803d;
+   font-weight: 700; font-size: 13px; }
+.live-dot i { width: 9px; height: 9px; border-radius: 50%; background: #16a34a; }
+.cbody { padding: 28px 32px 64px; max-width: 1040px; }
+.lead-sub { color: #64748b; margin-bottom: 22px; max-width: 64ch; }
+.actions-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+/* site section */
+.siteview { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px;
+   overflow: hidden; }
+.siteview .frame { position: relative; height: 470px; background: #f8fafc;
+   border-bottom: 1px solid #e2e8f0; overflow: hidden; }
+.siteview .frame iframe { position: absolute; top: 0; left: 0; width: 1200px;
+   height: 1550px; border: 0; transform: scale(.86); transform-origin: top left; }
+.siteview .bar { display: flex; gap: 12px; padding: 16px 18px; flex-wrap: wrap; }
+/* changes section */
+.change-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px;
+   padding: 22px; margin-bottom: 18px; }
+.change-card h3 { font-size: 17px; margin-bottom: 6px; }
+.change-card p { color: #64748b; font-size: 14px; margin-bottom: 14px; max-width: 60ch; }
+.change-card textarea { width: 100%; padding: 12px 14px; border: 1px solid #cbd5e1;
+   border-radius: 10px; font: inherit; resize: vertical; margin-bottom: 12px; }
+.change-card textarea:focus { outline: none; border-color: #2563eb; }
+/* go-live steps */
+.steps { list-style: none; }
+.step { display: flex; gap: 16px; padding: 18px 4px; align-items: center;
+   border-bottom: 1px solid #eef2f6; }
+.step:last-child { border-bottom: 0; }
+.step .marker { flex: none; width: 34px; height: 34px; border-radius: 50%;
+   display: flex; align-items: center; justify-content: center; font-weight: 700; }
+.step.done .marker { background: #16a34a; color: #fff; }
+.step.now .marker { background: #2563eb; color: #fff; }
+.step.next .marker { background: #e2e8f0; color: #94a3b8; }
+.step .line { flex: 1; }
+.step .line h3 { font-size: 16px; }
+.step .line p { color: #64748b; font-size: 14px; }
+.step .tag { flex: none; font-size: 12px; font-weight: 700; padding: 5px 11px;
+   border-radius: 999px; }
+.step.done .tag { background: #16a34a14; color: #15803d; }
+.step.now .tag { background: #2563eb14; color: #1d4ed8; }
+.step.next .tag { background: #f1f5f9; color: #94a3b8; }
+.soon { background: #fff; border: 1px dashed #cbd5e1; border-radius: 14px;
+   padding: 40px 32px; color: #64748b; text-align: center; max-width: 60ch; }
+@media (max-width: 720px) {
+  .console { grid-template-columns: 1fr; }
+  .side { position: static; height: auto; }
+  .side nav { flex-direction: row; flex-wrap: wrap; }
+}
 .state { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px;
          padding: 48px 40px; text-align: center; margin-top: 32px; }
 .state h1 { font-size: 26px; margin-bottom: 10px; }
@@ -180,7 +251,132 @@ def _variant_card(lead: Lead, v_key: str, title: str, blurb: str, accent: str,
 </div>"""
 
 
-def render_page(lead: Lead | None, job: Job | None, lang: str) -> str:
+# --------------------------------------------------------------------------
+# The console shell (left-nav dashboard) shown once a design is chosen
+# --------------------------------------------------------------------------
+
+_NAV = [
+    ("site", "🏠", "nav_site"),
+    ("changes", "✏️", "nav_changes"),
+    ("design", "🎨", "nav_design"),
+    ("details", "🏷️", "nav_details"),
+    ("golive", "🚀", "nav_golive"),
+]
+_VIEWS = {k for k, _, _ in _NAV}
+
+
+def _sidebar(lead: Lead, active: str, U: dict) -> str:
+    lid = _esc(lead.id)
+    items = "".join(
+        f'<a class="nav-item{" active" if k == active else ""}" '
+        f'href="/c/{lid}?view={k}"><span class="ic">{ic}</span>{_esc(U[label])}</a>'
+        for k, ic, label in _NAV
+    )
+    return f"""<aside class="side">
+  <div class="brand">{_esc(lead.brief.name)}<small>{_esc(U['nav_section'])}</small></div>
+  <nav>{items}</nav>
+  <div class="spacer"></div>
+  <div class="foot">{_esc(U['app_footer'])}</div>
+</aside>"""
+
+
+def _console_doc(lang: str, U: dict, body: str) -> str:
+    return f"""<!doctype html>
+<html lang="{_esc(lang)}"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>{_esc(U['console_title'])}</title>
+<style>{_css()}</style>
+</head><body class="app">{body}</body></html>"""
+
+
+def _console_shell(lead: Lead, active: str, title: str, content: str, lang: str) -> str:
+    U = i18n.ui(lang)
+    lid = _esc(lead.id)
+    head = f"""<header class="chead">
+  <h1>{_esc(title)}</h1>
+  <div class="actions-row">
+    <span class="live-dot"><i></i>{_esc(U['console_live_note'])}</span>
+    <a class="btn outline" href="/site/{lid}/" target="_blank"
+       rel="noopener">{_esc(U['console_visit'])}</a>
+  </div>
+</header>"""
+    body = (f'<div class="console">{_sidebar(lead, active, U)}'
+            f'<main class="content">{head}<div class="cbody">{content}</div>'
+            f'</main></div>')
+    return _console_doc(lang, U, body)
+
+
+def _sec_site(lead: Lead, U: dict) -> str:
+    lid = _esc(lead.id)
+    return f"""<p class="lead-sub">{_esc(U['sec_site_sub'])}</p>
+<div class="siteview">
+  <div class="frame">
+    <iframe src="/site/{lid}/" scrolling="no" title="{_esc(lead.brief.name)}"></iframe>
+  </div>
+  <div class="bar">
+    <a class="btn big edit" style="width:auto" href="/c/{lid}/editor">{_esc(U['console_edit_open'])}</a>
+    <a class="btn big outline" style="width:auto" href="/site/{lid}/" target="_blank"
+       rel="noopener">{_esc(U['console_visit'])}</a>
+  </div>
+</div>"""
+
+
+def _sec_changes(lead: Lead, U: dict) -> str:
+    lid = _esc(lead.id)
+    return f"""<div class="change-card">
+  <h3>{_esc(U['sec_changes_inline_h'])}</h3>
+  <p>{_esc(U['sec_changes_inline_d'])}</p>
+  <a class="btn edit" href="/c/{lid}/editor">{_esc(U['console_edit_open'])}</a>
+</div>
+<div class="change-card">
+  <h3>{_esc(U['sec_changes_ask_h'])}</h3>
+  <p>{_esc(U['sec_changes_ask_d'])}</p>
+  <form method="post" action="/c/{lid}/edit">
+    <textarea name="instruction" rows="3" required
+              placeholder="{_esc(U['console_edit_ph'])}"></textarea>
+    <button class="btn primary" type="submit">{_esc(U['console_edit_btn'])}</button>
+  </form>
+</div>"""
+
+
+def _sec_design(lead: Lead, others: list, U: dict) -> str:
+    sub = f'<p class="lead-sub">{_esc(U["sec_design_sub"])}</p>'
+    if not others:
+        return sub
+    cards = "".join(
+        _variant_card(lead, v.key, v.title, v.blurb, v.accent, False, U)
+        for v in others
+    )
+    return sub + f'<div class="grid">{cards}</div>'
+
+
+def _sec_details(U: dict) -> str:
+    return f'<div class="soon">{_esc(U["sec_details_soon"])}</div>'
+
+
+def _sec_golive(U: dict) -> str:
+    # Static for now: design done, personalising in progress, address + live upcoming.
+    rows = [
+        ("done", "✓", "step_design_t", "step_design_d", "step_done"),
+        ("now", "2", "step_personalise_t", "step_personalise_d", "step_now"),
+        ("next", "3", "step_address_t", "step_address_d", "step_next"),
+        ("next", "4", "step_live_t", "step_live_d", "step_next"),
+    ]
+    lis = "".join(
+        f"""<li class="step {state}">
+    <span class="marker">{mark}</span>
+    <div class="line"><h3>{_esc(U[tk])}</h3><p>{_esc(U[dk])}</p></div>
+    <span class="tag">{_esc(U[tagk])}</span>
+  </li>"""
+        for state, mark, tk, dk, tagk in rows
+    )
+    return f'<p class="lead-sub">{_esc(U["sec_golive_sub"])}</p><ul class="steps">{lis}</ul>'
+
+
+def render_page(lead: Lead | None, job: Job | None, lang: str,
+                view: str = "site") -> str:
     """Full console HTML for a lead's current generation state."""
     U = i18n.ui(lang)
 
@@ -208,40 +404,21 @@ def render_page(lead: Lead | None, job: Job | None, lang: str) -> str:
     chosen = job.chosen
     cv = job.variant(chosen) if chosen else None
 
-    # Chosen + live → a clean "My Website" dashboard (not the option grid).
+    # Chosen + live → the full console (left-nav dashboard).
     if cv is not None:
-        lid = _esc(lead.id)
+        active = view if view in _VIEWS else "site"
         others = [v for v in job.variants if v.key != chosen]
-        others_html = ""
-        if others:
-            cards = "".join(
-                _variant_card(lead, v.key, v.title, v.blurb, v.accent, False, U)
-                for v in others
-            )
-            others_html = f"""<section class="others"><div class="wrap">
-  <h2 class="others-h">{_esc(U['console_others_h'])}</h2>
-  <div class="grid">{cards}</div>
-</div></section>"""
-        body = f"""<section class="dash"><div class="wrap">
-  <div class="live-note"><span class="check">✓</span> {_esc(U['console_live_note'])}</div>
-  <div class="mywebsite">
-    <div class="preview">
-      <iframe src="/site/{lid}/" scrolling="no" title="{_esc(brand)}"></iframe>
-      <a class="cover" href="/site/{lid}/" target="_blank" rel="noopener"></a>
-    </div>
-    <div class="panel">
-      <h1>{_esc(brand)}</h1>
-      <p class="design"><span class="dot" style="background:{_esc(cv.accent)}"></span>
-        {_esc(U['console_design'].format(title=cv.title))}</p>
-      <a class="btn big edit" href="/c/{lid}/editor">{_esc(U['console_edit_open'])}</a>
-      <a class="btn big outline" href="/site/{lid}/" target="_blank"
-         rel="noopener">{_esc(U['console_visit'])}</a>
-      <p class="hint">{_esc(U['console_live_hint'])}</p>
-    </div>
-  </div>
-</div></section>
-{others_html}"""
-        return _shell(lang, brand, sub, body, refresh=False)
+        if active == "changes":
+            title, content = U["sec_changes_h"], _sec_changes(lead, U)
+        elif active == "design":
+            title, content = U["sec_design_h"], _sec_design(lead, others, U)
+        elif active == "details":
+            title, content = U["sec_details_h"], _sec_details(U)
+        elif active == "golive":
+            title, content = U["sec_golive_h"], _sec_golive(U)
+        else:
+            title, content = U["sec_site_h"], _sec_site(lead, U)
+        return _console_shell(lead, active, title, content, lang)
 
     # Not chosen yet → the options grid to pick from.
     cards = "".join(

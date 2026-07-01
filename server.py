@@ -131,7 +131,8 @@ class Handler(BaseHTTPRequestHandler):
         # /c/<lead_id>  → the console page (states: pending / ready / error)
         if len(parts) == 2:
             code = 200 if lead else 404
-            return self._html(code, console.render_page(lead, job, lang))
+            view = (parse_qs(urlsplit(self.path).query).get("view") or ["site"])[0]
+            return self._html(code, console.render_page(lead, job, lang, view))
 
         # /c/<lead_id>/editor  → the chosen site with the inline editing layer
         if len(parts) >= 3 and parts[2] == "editor":
